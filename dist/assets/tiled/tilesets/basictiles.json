@@ -1,0 +1,14 @@
+{ "columns":8,
+ "image":"..\/..\/images\/Tiny 16: Basic\/basictiles.png",
+ "imageheight":240,
+ "imagewidth":128,
+ "margin":0,
+ "name":"basictiles",
+ "spacing":0,
+ "tilecount":120,
+ "tiledversion":"1.2.1",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":1.2
+}

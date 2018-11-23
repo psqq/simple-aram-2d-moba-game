@@ -1,0 +1,22 @@
+{
+  "name": "html5-gamedev-sandbox",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack --mode development",
+    "watch": "webpack -w --mode development",
+    "build": "webpack --mode production"
+  },
+  "devDependencies": {
+    "del": "^3.0.0",
+    "keymaster": "^1.6.2",
+    "lodash": "^4.17.11",
+    "matter-js": "^0.14.2",
+    "pad": "^2.2.1",
+    "path-browserify": "^1.0.0",
+    "redom": "^3.16.1",
+    "victor": "^1.1.0",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
+  }
+}
