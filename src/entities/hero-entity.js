@@ -9,6 +9,7 @@ import EntityManager from '../classes/entities-manager';
 import Animation from '../classes/animation';
 import AnimationManager from '../classes/animation-manager';
 import Entity from '../classes/entity';
+import Stats from '../classes/stats';
 
 
 export default class HeroEnity extends Entity {
@@ -33,6 +34,10 @@ export default class HeroEnity extends Entity {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
+        this.stats = new Stats({
+            game: this.game,
+            entity: this,
+        });
     }
     /**
      * @param {Victor} velocity
@@ -124,5 +129,6 @@ export default class HeroEnity extends Entity {
     }
     draw() {
         this.animations[this.currentAnimation].draw(this.position);
+        this.stats.draw();
     }
 }

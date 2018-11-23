@@ -2,6 +2,7 @@ import Matter from 'matter-js';
 import Victor from 'victor';
 import Mainloop from './mainloop';
 import Canvas from './canvas';
+import BaseGame from './base-game';
 
 export const
     Engine = Matter.Engine,
@@ -17,16 +18,15 @@ export const
 export default class PhysicsEngine {
     /**
      * @param {Object} o - options
-     * @param {Mainloop} o.mainloop
+     * @param {BaseGame} o.game
      * @param {boolean} [o.noGravity=false]
-     * @param {Canvas} o.canvas
      */
     constructor(o = {}) {
         _.defaults(o, {
             noGravity: false,
         });
-        this.mainloop = o.mainloop;
-        this.canvas = o.canvas;
+        this.mainloop = o.game.mainloop;
+        this.canvas = o.game.canvas;
         this.engine = Engine.create();
         this.world = this.engine.world;
         if (o.noGravity) {
