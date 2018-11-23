@@ -30376,6 +30376,10 @@ class BaseGame {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Canvas; });
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_0__);
+
+
 
 class Canvas {
     /**
@@ -30431,6 +30435,24 @@ class Canvas {
     hide() {
         this.displayStyleForShow = this.canvas.style.display;
         this.canvas.style.display = 'none';
+    }
+    /**
+     * @param {Object} img
+     * @param {string} [img.name]
+     * @param {string} [img.src]
+     * @param {HTMLImageElement} [img.image]
+     * @param {Victor} [img.size]
+     * @param {Victor} [img.tileSize]
+     * @param {Victor} pos
+     */
+    drawImage(img, pos) {
+        this.context.drawImage(
+            img.image,
+            0, 0,
+            img.size.x, img.size.y,
+            pos.x - img.size.x / 2, pos.y - img.size.y / 2,
+            img.size.x, img.size.y,
+        );
     }
 }
 
@@ -30977,35 +30999,70 @@ class Stats {
      * @param {Object} o - options
      * @param {BaseGame} o.game
      * @param {Entity} o.entity
+     * @param {number} [o.maxMp]
      */
-    constructor(o) {
+    constructor(o = {}) {
+        _.defaults(o, {
+            maxMp: 100,
+            maxHp: 100,
+        });
         this.game = o.game;
         this.entity = o.entity;
-        this.hp = 100;
-        this.maxHp = 100;
-        this.mp = 100;
-        this.maxMp = 100;
+        this.hp = o.maxHp * 0.8;
+        this.maxHp = o.maxHp;
+        this.mp = o.maxMp / 3;
+        this.maxMp = o.maxMp;
         this.barHeight = 2;
+        this.bottomPadding = 2;
     }
-    draw() {
+    getBarLeft() {
+        return this.entity.position.x - this.entity.size.x / 2;
+    }
+    getBarBottom() {
+        return this.entity.position.y - this.entity.size.y / 2 - this.bottomPadding;
+    }
+    getCountBars() {
+        var countBars = 0;
+        if (this.maxMp > 0) {
+            countBars++;
+        }
+        if (this.maxHp > 0) {
+            countBars++;
+        }
+        return countBars;
+    }
+    drawBarsBackground(padding = 0) {
         var ctx = this.game.canvas.context;
-        var y = this.entity.position.y - this.entity.size.y / 2 - 2;
-        var x = this.entity.position.x - this.entity.size.x / 2;
+        var countBars = this.getCountBars();
+        var x = this.getBarLeft(), y = this.getBarBottom();
         var w = this.entity.size.x;
-        ctx.save();
-        var padding = 1;
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#555';
         ctx.fillRect(
-            x - padding, y - 2 * this.barHeight - padding,
+            x - padding, y - countBars * this.barHeight - padding,
             w + 2 * padding,
             2 * this.barHeight + 2 * padding
         );
-        y -= this.barHeight;
-        ctx.fillStyle = 'blue';
+    }
+    drawBar(value, maxValue, lineNumber = 0, color = 'white') {
+        var x = this.getBarLeft(), y = this.getBarBottom() - lineNumber * this.barHeight;
+        var w = this.entity.size.x * (value / maxValue);
+        var ctx = this.game.canvas.context;
+        ctx.fillStyle = color;
         ctx.fillRect(x, y, w, this.barHeight);
-        y -= this.barHeight;
-        ctx.fillStyle = 'red';
-        ctx.fillRect(x, y, w, this.barHeight);
+    }
+    draw() {
+        if (this.getCountBars() <= 0) {
+            return;
+        }
+        var ctx = this.game.canvas.context;
+        ctx.save();
+        this.drawBarsBackground();
+        if (this.maxHp > 0) {
+            this.drawBar(this.hp, this.maxHp, 1, 'red');
+        }
+        if (this.maxMp > 0) {
+            this.drawBar(this.mp, this.maxMp, 2, 'blue');
+        }
         ctx.restore();
     }
 }
@@ -31503,6 +31560,94 @@ class HeroEnity extends _classes_entity__WEBPACK_IMPORTED_MODULE_10__["default"]
 
 /***/ }),
 
+/***/ "./src/entities/tower.js":
+/*!*******************************!*\
+  !*** ./src/entities/tower.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tower; });
+/* harmony import */ var _classes_canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes/canvas */ "./src/classes/canvas.js");
+/* harmony import */ var _classes_mainloop__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../classes/mainloop */ "./src/classes/mainloop.js");
+/* harmony import */ var _classes_base_game__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../classes/base-game */ "./src/classes/base-game.js");
+/* harmony import */ var _classes_viewport__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../classes/viewport */ "./src/classes/viewport.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! keymaster */ "./node_modules/keymaster/keymaster.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(keymaster__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _classes_physics_engine__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../classes/physics-engine */ "./src/classes/physics-engine.js");
+/* harmony import */ var _classes_entities_manager__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../classes/entities-manager */ "./src/classes/entities-manager.js");
+/* harmony import */ var _classes_animation__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../classes/animation */ "./src/classes/animation.js");
+/* harmony import */ var _classes_animation_manager__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../classes/animation-manager */ "./src/classes/animation-manager.js");
+/* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
+/* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Tower extends _classes_entity__WEBPACK_IMPORTED_MODULE_10__["default"] {
+    /**
+     * @param {Object} o - options
+     * @param {BaseGame} o.game
+     * @param {number} [o.zindex=0] - zindex for draw
+     * @param {Victor} [o.position=(0, 0)] - center of entity
+     * @param {Victor} [o.size=(0, 0)] - width and height of entity
+     * @param {sring} [o.color=blue] - width and height of entity
+     */
+    constructor(o = {}) {
+        _.defaults(o, {
+            mainloop: o.game.mainloop,
+            size: new victor__WEBPACK_IMPORTED_MODULE_5___default.a(22, 34),
+            color: 'blue',
+        });
+        super(o);
+        this.game = o.game;
+        this.color = o.color;
+        this.createBody();
+        this.stats = new _classes_stats__WEBPACK_IMPORTED_MODULE_11__["default"]({
+            game: this.game,
+            entity: this,
+            maxMp: 0,
+        });
+        if (this.color === 'blue')
+            this.image = this.game.imageManager.getImage('BlueTower');
+        else
+            this.image = this.game.imageManager.getImage('RedTower');
+    }
+    createBody() {
+        this.body = this.game.physicsEngine.addBody({
+            isArcade: true,
+            isStatic: true,
+            shape: 'rectangle',
+            position: this.position,
+            size: this.size,
+        });
+    }
+    update() {
+        super.update();
+    }
+    draw() {
+        this.game.canvas.drawImage(this.image, this.position);
+        this.stats.draw();
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
@@ -31524,7 +31669,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _classes_tiled_map__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./classes/tiled-map */ "./src/classes/tiled-map.js");
 /* harmony import */ var _entities_hero_entity__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/hero-entity */ "./src/entities/hero-entity.js");
-/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./player */ "./src/player.js");
+/* harmony import */ var _entities_tower__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./entities/tower */ "./src/entities/tower.js");
+/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./player */ "./src/player.js");
+
 
 
 
@@ -31545,9 +31692,18 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_3__["default"] {
             src: './assets/images/Hero.png',
             tileSize: new victor__WEBPACK_IMPORTED_MODULE_6___default.a(16, 16),
         });
+        this.imageManager.addImage({
+            src: './assets/images/dungeon_sheet-blue-tower-22x34.png',
+            name: 'BlueTower',
+        });
         this.addMap('aram', './assets/tiled/maps/aram.json');
         this.bindEvents();
-        this.player = new _player__WEBPACK_IMPORTED_MODULE_9__["default"]({ game: this });
+        this.player = new _player__WEBPACK_IMPORTED_MODULE_10__["default"]({ game: this });
+        this.tower = this.entityManager.addEntity(
+            new _entities_tower__WEBPACK_IMPORTED_MODULE_9__["default"]({
+                game: this,
+            })
+        );
         this.viewport.changeScale(1.4);
     }
     bindEvents() {
@@ -31586,6 +31742,12 @@ async function main() {
         new victor__WEBPACK_IMPORTED_MODULE_6___default.a(
             50,
             game.maps.aram.pixelSize.y - 50,
+        )
+    );
+    game.tower.setPosition(
+        new victor__WEBPACK_IMPORTED_MODULE_6___default.a(
+            100,
+            game.maps.aram.pixelSize.y - 100,
         )
     );
     game.viewport.setBounds({

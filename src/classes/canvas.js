@@ -1,3 +1,5 @@
+import Victor from 'victor';
+
 
 export default class Canvas {
     /**
@@ -53,5 +55,23 @@ export default class Canvas {
     hide() {
         this.displayStyleForShow = this.canvas.style.display;
         this.canvas.style.display = 'none';
+    }
+    /**
+     * @param {Object} img
+     * @param {string} [img.name]
+     * @param {string} [img.src]
+     * @param {HTMLImageElement} [img.image]
+     * @param {Victor} [img.size]
+     * @param {Victor} [img.tileSize]
+     * @param {Victor} pos
+     */
+    drawImage(img, pos) {
+        this.context.drawImage(
+            img.image,
+            0, 0,
+            img.size.x, img.size.y,
+            pos.x - img.size.x / 2, pos.y - img.size.y / 2,
+            img.size.x, img.size.y,
+        );
     }
 }

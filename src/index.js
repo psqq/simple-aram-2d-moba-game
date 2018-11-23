@@ -7,6 +7,7 @@ import key from 'keymaster';
 import Victor from 'victor';
 import TiledMap from './classes/tiled-map';
 import HeroEntity from './entities/hero-entity';
+import TowerEntity from './entities/tower';
 import Player from './player';
 
 
@@ -18,9 +19,18 @@ export default class Game extends BaseGame {
             src: './assets/images/Hero.png',
             tileSize: new Victor(16, 16),
         });
+        this.imageManager.addImage({
+            src: './assets/images/dungeon_sheet-blue-tower-22x34.png',
+            name: 'BlueTower',
+        });
         this.addMap('aram', './assets/tiled/maps/aram.json');
         this.bindEvents();
         this.player = new Player({ game: this });
+        this.tower = this.entityManager.addEntity(
+            new TowerEntity({
+                game: this,
+            })
+        );
         this.viewport.changeScale(1.4);
     }
     bindEvents() {
@@ -59,6 +69,12 @@ async function main() {
         new Victor(
             50,
             game.maps.aram.pixelSize.y - 50,
+        )
+    );
+    game.tower.setPosition(
+        new Victor(
+            100,
+            game.maps.aram.pixelSize.y - 100,
         )
     );
     game.viewport.setBounds({
