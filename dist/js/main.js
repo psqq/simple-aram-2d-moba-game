@@ -30572,6 +30572,14 @@ class Entity {
          */
         this.body = null;
     }
+    /**
+     * @param {Victor} pos
+     */
+    setPosition(pos) {
+        this.position = pos.clone();
+        this.body.position.x = pos.x;
+        this.body.position.y = pos.y;
+    }
     kill() {
         this._killed = true;
     }
@@ -31142,6 +31150,7 @@ class TiledMap {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Utils; });
 
+
 class Utils {
     static async loadJsonFile(filename) {
         var res = await fetch(filename);
@@ -31188,6 +31197,16 @@ class Viewport {
         this.canvasElement = o.canvasElement;
         this.context = o.context;
         this.bounds = o.bounds;
+    }
+    /**
+     * @param {Object} [bounds]
+     * @param {number} [bounds.left]
+     * @param {number} [bounds.right]
+     * @param {number} [bounds.top]
+     * @param {number} [bounds.bottom]
+     */
+    setBounds(bounds) {
+        this.bounds = bounds;
     }
     /**
      * @param {number} dScale
@@ -31423,6 +31442,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _classes_tiled_map__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./classes/tiled-map */ "./src/classes/tiled-map.js");
 /* harmony import */ var _entities_hero_entity__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/hero-entity */ "./src/entities/hero-entity.js");
+/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./player */ "./src/player.js");
 
 
 
@@ -31434,7 +31454,88 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const keyScope = 'SimpleGameExample';
+
+class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_3__["default"] {
+    constructor() {
+        super();
+        this.canvas.makeAlwaysCanvasFullscreen();
+        this.imageManager.addImage({
+            src: './assets/images/Hero.png',
+            tileSize: new victor__WEBPACK_IMPORTED_MODULE_6___default.a(16, 16),
+        });
+        this.addMap('aram', './assets/tiled/maps/aram.json');
+        this.bindEvents();
+        this.player = new _player__WEBPACK_IMPORTED_MODULE_9__["default"]({ game: this });
+        this.viewport.changeScale(1.4);
+    }
+    bindEvents() {
+        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('z', () => {
+            this.viewport.changeScale(-0.1);
+        });
+        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('x', () => {
+            this.viewport.changeScale(0.1);
+        });
+        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('r', () => {
+            this.pos.x = this.pos.y = 0;
+        });
+    }
+    afterLoad() {
+        this.player.entity.createAnimations();
+        this.maps.aram.createStaticObjects(this.physicsEngine, 'collision');
+    }
+    update() {
+        this.player.update();
+        super.update();
+    }
+    drawBody() {
+        this.drawMap('aram');
+        super.drawBody();
+    }
+}
+
+
+async function main() {
+    var game = new Game();
+    await game.load();
+    game.player.entity.setPosition(
+        new victor__WEBPACK_IMPORTED_MODULE_6___default.a(
+            50,
+            game.maps.aram.pixelSize.y - 50,
+        )
+    );
+    game.viewport.setBounds({
+        left: 0, right: game.maps.aram.pixelSize.x,
+        top: 0, bottom: game.maps.aram.pixelSize.y,
+        
+    });
+    game.mainloop.run();
+}
+
+main();
+
+
+/***/ }),
+
+/***/ "./src/player.js":
+/*!***********************!*\
+  !*** ./src/player.js ***!
+  \***********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Player; });
+/* harmony import */ var _classes_base_game__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./classes/base-game */ "./src/classes/base-game.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! keymaster */ "./node_modules/keymaster/keymaster.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(keymaster__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _entities_hero_entity__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/hero-entity */ "./src/entities/hero-entity.js");
+
+
+
+
 
 
 class Player {
@@ -31450,19 +31551,19 @@ class Player {
          * @type {HeroEntity}
          */
         this.entity = o.game.entityManager.addEntity(
-            new _entities_hero_entity__WEBPACK_IMPORTED_MODULE_8__["default"]({
-                position: new victor__WEBPACK_IMPORTED_MODULE_6___default.a(225, 230),
+            new _entities_hero_entity__WEBPACK_IMPORTED_MODULE_3__["default"]({
+                position: new victor__WEBPACK_IMPORTED_MODULE_2___default.a(225, 230),
                 game: this.game,
             })
         );
         this.speed = 2;
     }
     update() {
-        var dir = new victor__WEBPACK_IMPORTED_MODULE_6___default.a(0, 0);
-        if (keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.isPressed('a')) dir.x -= 1;
-        if (keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.isPressed('d')) dir.x += 1;
-        if (keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.isPressed('w')) dir.y -= 1;
-        if (keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.isPressed('s')) dir.y += 1;
+        var dir = new victor__WEBPACK_IMPORTED_MODULE_2___default.a(0, 0);
+        if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('a')) dir.x -= 1;
+        if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('d')) dir.x += 1;
+        if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('w')) dir.y -= 1;
+        if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('s')) dir.y += 1;
         if (dir.length() > 0) {
             dir.norm().multiplyScalar(this.speed);
         }
@@ -31473,65 +31574,6 @@ class Player {
         this.entity.draw();
     }
 }
-
-
-class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_3__["default"] {
-    constructor() {
-        super();
-        this.canvas.makeAlwaysCanvasFullscreen();
-        this.canvas.hide();
-        this.imageManager.addImage({
-            src: './assets/images/Hero.png',
-            tileSize: new victor__WEBPACK_IMPORTED_MODULE_6___default.a(16, 16),
-        });
-        this.addMap('map2', './assets/tiled/maps/map2.json');
-        this.bindEvents();
-        this.player = new Player({ game: this });
-        this.viewport.changeScale(2);
-    }
-    bindEvents() {
-        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('z', keyScope, () => {
-            this.viewport.changeScale(-0.1);
-        });
-        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('x', keyScope, () => {
-            this.viewport.changeScale(0.1);
-        });
-        keymaster__WEBPACK_IMPORTED_MODULE_5___default()('r', keyScope, () => {
-            this.pos.x = this.pos.y = 0;
-        });
-    }
-    afterLoad() {
-        this.player.entity.createAnimations();
-        this.maps.map2.createStaticObjects(this.physicsEngine, 'collision');
-    }
-    update() {
-        this.player.update();
-        super.update();
-    }
-    run() {
-        this.canvas.show();
-        keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.setScope(keyScope);
-        this.mainloop.run();
-    }
-    stop() {
-        this.canvas.hide();
-        keymaster__WEBPACK_IMPORTED_MODULE_5___default.a.setScope('');
-        this.mainloop.stop();
-    }
-    drawBody() {
-        this.drawMap('map2');
-        super.drawBody();
-    }
-}
-
-
-async function main() {
-    var game = new Game();
-    await game.load();
-    game.run();
-}
-
-main();
 
 
 /***/ })

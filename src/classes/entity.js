@@ -28,6 +28,14 @@ export default class Entity {
          */
         this.body = null;
     }
+    /**
+     * @param {Victor} pos
+     */
+    setPosition(pos) {
+        this.position = pos.clone();
+        this.body.position.x = pos.x;
+        this.body.position.y = pos.y;
+    }
     kill() {
         this._killed = true;
     }

@@ -24,6 +24,16 @@ export default class Viewport {
         this.bounds = o.bounds;
     }
     /**
+     * @param {Object} [bounds]
+     * @param {number} [bounds.left]
+     * @param {number} [bounds.right]
+     * @param {number} [bounds.top]
+     * @param {number} [bounds.bottom]
+     */
+    setBounds(bounds) {
+        this.bounds = bounds;
+    }
+    /**
      * @param {number} dScale
      */
     changeScale(dScale) {
