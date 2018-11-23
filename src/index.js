@@ -36,7 +36,7 @@ export default class Game extends BaseGame {
     }
     afterLoad() {
         this.player.entity.createAnimations();
-        this.maps.aram.createStaticObjects(this.physicsEngine, 'collision');
+        this.maps.aram.createStaticObjects();
     }
     update() {
         this.player.update();
@@ -44,6 +44,9 @@ export default class Game extends BaseGame {
     }
     drawBody() {
         this.drawMap('aram');
+        // this.maps.aram.drawStaticObjects();
+        // this.physicsEngine.drawStaticBodyes();
+        // this.physicsEngine.drawDynamicBodyes();
         super.drawBody();
     }
 }

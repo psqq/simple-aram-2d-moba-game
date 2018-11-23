@@ -1,6 +1,7 @@
 import Matter from 'matter-js';
 import Victor from 'victor';
 import Mainloop from './mainloop';
+import Canvas from './canvas';
 
 export const
     Engine = Matter.Engine,
@@ -18,12 +19,14 @@ export default class PhysicsEngine {
      * @param {Object} o - options
      * @param {Mainloop} o.mainloop
      * @param {boolean} [o.noGravity=false]
+     * @param {Canvas} o.canvas
      */
     constructor(o = {}) {
         _.defaults(o, {
-            noGravity: false
+            noGravity: false,
         });
         this.mainloop = o.mainloop;
+        this.canvas = o.canvas;
         this.engine = Engine.create();
         this.world = this.engine.world;
         if (o.noGravity) {
@@ -107,6 +110,8 @@ export default class PhysicsEngine {
      * @param {string} [color=black]
      */
     drawBody(body, color = 'black') {
+        var ctx = this.canvas.context;
+        ctx.save();
         ctx.beginPath();
         var p = body.vertices[0];
         ctx.moveTo(p.x, p.y);
@@ -117,12 +122,13 @@ export default class PhysicsEngine {
         ctx.closePath();
         ctx.strokeStyle = color;
         ctx.stroke();
+        ctx.restore();
     }
     drawStaticBodyes() {
         var bodies = Composite.allBodies(this.world);
         for (var b of bodies) {
             if (b.isStatic) {
-                drawBody(b, 'red');
+                this.drawBody(b, 'red');
             }
         }
     }
@@ -130,8 +136,14 @@ export default class PhysicsEngine {
         var bodies = Composite.allBodies(this.world);
         for (var b of bodies) {
             if (!b.isStatic) {
-                drawBody(b, 'red');
+                this.drawBody(b, 'green');
             }
+        }
+    }
+    drawAllBodyes() {
+        var bodies = Composite.allBodies(this.world);
+        for (var b of bodies) {
+            this.drawBody(b, 'blue');
         }
     }
 }

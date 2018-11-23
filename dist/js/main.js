@@ -30313,6 +30313,7 @@ class BaseGame {
         this.physicsEngine = new _physics_engine__WEBPACK_IMPORTED_MODULE_3__["default"]({
             mainloop: this.mainloop,
             noGravity: true,
+            canvas: this.canvas,
         });
         this.entityManager = new _entities_manager__WEBPACK_IMPORTED_MODULE_4__["default"]({
             viewport: this.viewport,
@@ -30329,6 +30330,7 @@ class BaseGame {
             viewport: this.viewport,
             canvas: this.canvas,
             imageManager: this.imageManager,
+            physicsEngine: this.physicsEngine,
         });
     }
     async load() {
@@ -30576,9 +30578,12 @@ class Entity {
      * @param {Victor} pos
      */
     setPosition(pos) {
-        this.position = pos.clone();
-        this.body.position.x = pos.x;
-        this.body.position.y = pos.y;
+        _physics_engine__WEBPACK_IMPORTED_MODULE_2__["Body"].setPosition(
+            this.body,
+            new _physics_engine__WEBPACK_IMPORTED_MODULE_2__["Vector"].create(pos.x, pos.y)
+        );
+        this.position.x = this.body.position.x;
+        this.position.y = this.body.position.y;
     }
     kill() {
         this._killed = true;
@@ -30797,6 +30802,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _mainloop__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mainloop */ "./src/classes/mainloop.js");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./canvas */ "./src/classes/canvas.js");
+
 
 
 
@@ -30817,12 +30824,14 @@ class PhysicsEngine {
      * @param {Object} o - options
      * @param {Mainloop} o.mainloop
      * @param {boolean} [o.noGravity=false]
+     * @param {Canvas} o.canvas
      */
     constructor(o = {}) {
         _.defaults(o, {
-            noGravity: false
+            noGravity: false,
         });
         this.mainloop = o.mainloop;
+        this.canvas = o.canvas;
         this.engine = Engine.create();
         this.world = this.engine.world;
         if (o.noGravity) {
@@ -30906,6 +30915,8 @@ class PhysicsEngine {
      * @param {string} [color=black]
      */
     drawBody(body, color = 'black') {
+        var ctx = this.canvas.context;
+        ctx.save();
         ctx.beginPath();
         var p = body.vertices[0];
         ctx.moveTo(p.x, p.y);
@@ -30916,12 +30927,13 @@ class PhysicsEngine {
         ctx.closePath();
         ctx.strokeStyle = color;
         ctx.stroke();
+        ctx.restore();
     }
     drawStaticBodyes() {
         var bodies = Composite.allBodies(this.world);
         for (var b of bodies) {
             if (b.isStatic) {
-                drawBody(b, 'red');
+                this.drawBody(b, 'red');
             }
         }
     }
@@ -30929,8 +30941,14 @@ class PhysicsEngine {
         var bodies = Composite.allBodies(this.world);
         for (var b of bodies) {
             if (!b.isStatic) {
-                drawBody(b, 'red');
+                this.drawBody(b, 'green');
             }
+        }
+    }
+    drawAllBodyes() {
+        var bodies = Composite.allBodies(this.world);
+        for (var b of bodies) {
+            this.drawBody(b, 'blue');
         }
     }
 }
@@ -30971,6 +30989,7 @@ class TiledMap {
      * @param {Object} o - options
      * @param {string} o.filename
      * @param {ImageManager} o.imageManager
+     * @param {PhysicsEngine} o.physicsEngine
      * @param {Viewport} o.viewport
      * @param {Canvas} o.canvas
      */
@@ -30978,6 +30997,7 @@ class TiledMap {
         this.filename = o.filename;
         this.imageManager = o.imageManager;
         this.canvas = o.canvas;
+        this.physicsEngine = o.physicsEngine;
         this.viewport = o.viewport;
         this.numberOfTiles = new victor__WEBPACK_IMPORTED_MODULE_3___default.a(0, 0);
         this.tileSize = new victor__WEBPACK_IMPORTED_MODULE_3___default.a(0, 0);
@@ -31083,11 +31103,9 @@ class TiledMap {
         var cachedCtx = this.cachedCanvas.getContext('2d');
         this.draw(cachedCtx);
     }
-    /**
-     * @param {PhysicsEngine} physicsEngine
-     * @param {string} layerName
-     */
-    createStaticObjects(physicsEngine, layerName) {
+    createStaticObjects() {
+        var physicsEngine = this.physicsEngine;
+        var layerName = 'collision';
         for (var layer of this.mapJSON.layers) {
             if (layer.type === 'objectgroup' && layer.name === layerName) {
                 for (var obj of layer.objects) {
@@ -31481,7 +31499,7 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_3__["default"] {
     }
     afterLoad() {
         this.player.entity.createAnimations();
-        this.maps.aram.createStaticObjects(this.physicsEngine, 'collision');
+        this.maps.aram.createStaticObjects();
     }
     update() {
         this.player.update();
@@ -31489,6 +31507,9 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_3__["default"] {
     }
     drawBody() {
         this.drawMap('aram');
+        // this.maps.aram.drawStaticObjects();
+        // this.physicsEngine.drawStaticBodyes();
+        // this.physicsEngine.drawDynamicBodyes();
         super.drawBody();
     }
 }

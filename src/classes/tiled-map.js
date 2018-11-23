@@ -12,6 +12,7 @@ export default class TiledMap {
      * @param {Object} o - options
      * @param {string} o.filename
      * @param {ImageManager} o.imageManager
+     * @param {PhysicsEngine} o.physicsEngine
      * @param {Viewport} o.viewport
      * @param {Canvas} o.canvas
      */
@@ -19,6 +20,7 @@ export default class TiledMap {
         this.filename = o.filename;
         this.imageManager = o.imageManager;
         this.canvas = o.canvas;
+        this.physicsEngine = o.physicsEngine;
         this.viewport = o.viewport;
         this.numberOfTiles = new Victor(0, 0);
         this.tileSize = new Victor(0, 0);
@@ -124,11 +126,9 @@ export default class TiledMap {
         var cachedCtx = this.cachedCanvas.getContext('2d');
         this.draw(cachedCtx);
     }
-    /**
-     * @param {PhysicsEngine} physicsEngine
-     * @param {string} layerName
-     */
-    createStaticObjects(physicsEngine, layerName) {
+    createStaticObjects() {
+        var physicsEngine = this.physicsEngine;
+        var layerName = 'collision';
         for (var layer of this.mapJSON.layers) {
             if (layer.type === 'objectgroup' && layer.name === layerName) {
                 for (var obj of layer.objects) {

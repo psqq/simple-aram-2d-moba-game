@@ -1,6 +1,6 @@
 import Victor from 'victor';
 import _ from 'lodash';
-import { Body } from './physics-engine';
+import { Body, Vector } from './physics-engine';
 import Mainloop from './mainloop';
 
 /** Class representing an game entity. */
@@ -32,9 +32,12 @@ export default class Entity {
      * @param {Victor} pos
      */
     setPosition(pos) {
-        this.position = pos.clone();
-        this.body.position.x = pos.x;
-        this.body.position.y = pos.y;
+        Body.setPosition(
+            this.body,
+            new Vector.create(pos.x, pos.y)
+        );
+        this.position.x = this.body.position.x;
+        this.position.y = this.body.position.y;
     }
     kill() {
         this._killed = true;

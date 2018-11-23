@@ -36,6 +36,7 @@ export default class BaseGame {
         this.physicsEngine = new PhysicsEngine({
             mainloop: this.mainloop,
             noGravity: true,
+            canvas: this.canvas,
         });
         this.entityManager = new EntityManager({
             viewport: this.viewport,
@@ -52,6 +53,7 @@ export default class BaseGame {
             viewport: this.viewport,
             canvas: this.canvas,
             imageManager: this.imageManager,
+            physicsEngine: this.physicsEngine,
         });
     }
     async load() {
