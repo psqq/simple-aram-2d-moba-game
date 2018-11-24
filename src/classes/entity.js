@@ -28,6 +28,9 @@ export default class Entity {
          */
         this.body = null;
     }
+    getMinSize() {
+        return Math.min(this.size.x, this.size.y);
+    }
     /**
      * @param {Victor} pos
      */

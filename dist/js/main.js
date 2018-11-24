@@ -30604,6 +30604,9 @@ class Entity {
          */
         this.body = null;
     }
+    getMinSize() {
+        return Math.min(this.size.x, this.size.y);
+    }
     /**
      * @param {Victor} pos
      */
@@ -31416,6 +31419,78 @@ class Viewport {
 
 /***/ }),
 
+/***/ "./src/entities/bullet-entity.js":
+/*!***************************************!*\
+  !*** ./src/entities/bullet-entity.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BulletEntity; });
+/* harmony import */ var _classes_base_game__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes/base-game */ "./src/classes/base-game.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
+/* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
+/* harmony import */ var _game_entity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./game-entity */ "./src/entities/game-entity.js");
+
+
+
+
+
+
+
+class BulletEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"] {
+    /**
+     * @param {Object} o - options
+     * @param {BaseGame} o.game
+     * @param {GameEntity} o.source
+     * @param {GameEntity} o.target
+     * @param {number} [o.speed=4] - zindex for draw
+     */
+    constructor(o = {}) {
+        _.defaults(o, {
+            mainloop: o.game.mainloop,
+            size: new victor__WEBPACK_IMPORTED_MODULE_1___default.a(1, 1),
+            position: o.source.position.clone(),
+            speed: 0.06,
+        });
+        super(o);
+        this.source = o.source;
+        this.target = o.target;
+        this.game = o.game;
+        this.speed = o.speed;
+    }
+    update() {
+        super.update();
+        var dir = this.target.position.clone().subtract(this.position);
+        var len = dir.length();
+        if (len < this.size.x) {
+            this.target.damage(this.source);
+            this.kill();
+        } else {
+            dir.norm().multiplyScalar(this.speed * this.mainloop.dt);
+            this.position.add(dir);
+        }
+    }
+    draw() {
+        var ctx = this.game.canvas.context;
+        var r = Math.max(this.size.x, this.size.y);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, r, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/entities/game-entity.js":
 /*!*************************************!*\
   !*** ./src/entities/game-entity.js ***!
@@ -31431,6 +31506,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
 /* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
+/* harmony import */ var _bullet_entity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./bullet-entity */ "./src/entities/bullet-entity.js");
+
 
 
 
@@ -31451,6 +31528,7 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
      * @param {number} [o.attackRange=50]
      * @param {number} [o.movementSpeed=1.5]
      * @param {number} [o.attackSpeed=0.5]
+     * @param {number} [o.attackDamage=10]
      */
     constructor(o = {}) {
         _.defaults(o, {
@@ -31462,6 +31540,7 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
             attackRange: 50,
             movementSpeed: 1.5,
             attackSpeed: 0.5,
+            attackDamage: 10,
         });
         super(o);
         this.game = o.game;
@@ -31473,10 +31552,22 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         this.maxMp = o.maxMp;
         this.attackRange = o.attackRange;
         this.movementSpeed = o.movementSpeed;
+        this.attackDamage = o.attackDamage;
         this.attackSpeed = o.attackSpeed;
+        this.attackInterval = 1 / this.attackSpeed * 1000;
+        this.timeOfPreviousAttack = 0;
 
         this.barHeight = 2;
         this.bottomPadding = 2;
+    }
+    /**
+     * @param {GameEntity} e
+     */
+    damage(e) {
+        this.hp -= e.attackDamage;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
     }
     searchForNearestEnemy() {
         for(var e of this.game.entityManager.entities) {
@@ -31486,7 +31577,7 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         }
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
     isInRange(e) {
         var d = e.position.clone().subtract(this.position);
@@ -31496,7 +31587,7 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         return false;
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
     gotoEntity(e) {
         var d = e.position.clone().subtract(this.position).norm();
@@ -31504,9 +31595,21 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         this.game.physicsEngine.setVelocityForBody(this.body, d);
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
-    attack(e) {}
+    attack(e) {
+        if (this.game.mainloop.timestamp - this.timeOfPreviousAttack < this.attackInterval) {
+            return;
+        }
+        this.timeOfPreviousAttack = this.game.mainloop.timestamp;
+        this.game.entityManager.addEntity(
+            new _bullet_entity__WEBPACK_IMPORTED_MODULE_4__["default"]({
+                game: this.game,
+                source: this,
+                target: e,
+            })
+        );
+    }
     // function for drawing hp and mp bars:
     getBarLeft() {
         return this.position.x - this.size.x / 2;

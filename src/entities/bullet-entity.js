@@ -2,30 +2,41 @@ import BaseGame from '../classes/base-game';
 import Victor from 'victor';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
+import GameEntity from './game-entity';
 
 
 export default class BulletEntity extends Entity {
     /**
      * @param {Object} o - options
      * @param {BaseGame} o.game
-     * @param {Entity} o.source
-     * @param {Entity} o.target
+     * @param {GameEntity} o.source
+     * @param {GameEntity} o.target
      * @param {number} [o.speed=4] - zindex for draw
      */
     constructor(o = {}) {
         _.defaults(o, {
             mainloop: o.game.mainloop,
-            size: new Victor(3, 3),
+            size: new Victor(1, 1),
             position: o.source.position.clone(),
-            speed: 4,
+            speed: 0.06,
         });
         super(o);
         this.source = o.source;
         this.target = o.target;
         this.game = o.game;
+        this.speed = o.speed;
     }
     update() {
         super.update();
+        var dir = this.target.position.clone().subtract(this.position);
+        var len = dir.length();
+        if (len < this.size.x) {
+            this.target.damage(this.source);
+            this.kill();
+        } else {
+            dir.norm().multiplyScalar(this.speed * this.mainloop.dt);
+            this.position.add(dir);
+        }
     }
     draw() {
         var ctx = this.game.canvas.context;

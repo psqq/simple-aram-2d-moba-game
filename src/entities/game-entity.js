@@ -2,6 +2,7 @@ import BaseGame from '../classes/base-game';
 import Victor from 'victor';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
+import BulletEntity from './bullet-entity';
 
 
 export default class GameEntity extends Entity {
@@ -18,6 +19,7 @@ export default class GameEntity extends Entity {
      * @param {number} [o.attackRange=50]
      * @param {number} [o.movementSpeed=1.5]
      * @param {number} [o.attackSpeed=0.5]
+     * @param {number} [o.attackDamage=10]
      */
     constructor(o = {}) {
         _.defaults(o, {
@@ -29,6 +31,7 @@ export default class GameEntity extends Entity {
             attackRange: 50,
             movementSpeed: 1.5,
             attackSpeed: 0.5,
+            attackDamage: 10,
         });
         super(o);
         this.game = o.game;
@@ -40,10 +43,22 @@ export default class GameEntity extends Entity {
         this.maxMp = o.maxMp;
         this.attackRange = o.attackRange;
         this.movementSpeed = o.movementSpeed;
+        this.attackDamage = o.attackDamage;
         this.attackSpeed = o.attackSpeed;
+        this.attackInterval = 1 / this.attackSpeed * 1000;
+        this.timeOfPreviousAttack = 0;
 
         this.barHeight = 2;
         this.bottomPadding = 2;
+    }
+    /**
+     * @param {GameEntity} e
+     */
+    damage(e) {
+        this.hp -= e.attackDamage;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
     }
     searchForNearestEnemy() {
         for(var e of this.game.entityManager.entities) {
@@ -53,7 +68,7 @@ export default class GameEntity extends Entity {
         }
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
     isInRange(e) {
         var d = e.position.clone().subtract(this.position);
@@ -63,7 +78,7 @@ export default class GameEntity extends Entity {
         return false;
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
     gotoEntity(e) {
         var d = e.position.clone().subtract(this.position).norm();
@@ -71,9 +86,21 @@ export default class GameEntity extends Entity {
         this.game.physicsEngine.setVelocityForBody(this.body, d);
     }
     /**
-     * @param {Entity} e
+     * @param {GameEntity} e
      */
-    attack(e) {}
+    attack(e) {
+        if (this.game.mainloop.timestamp - this.timeOfPreviousAttack < this.attackInterval) {
+            return;
+        }
+        this.timeOfPreviousAttack = this.game.mainloop.timestamp;
+        this.game.entityManager.addEntity(
+            new BulletEntity({
+                game: this.game,
+                source: this,
+                target: e,
+            })
+        );
+    }
     // function for drawing hp and mp bars:
     getBarLeft() {
         return this.position.x - this.size.x / 2;
