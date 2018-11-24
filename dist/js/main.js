@@ -30463,6 +30463,16 @@ class Canvas {
         ctx.stroke();
         ctx.restore();
     }
+    drawLine(p1, p2, color='black') {
+        var ctx = this.context;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+        ctx.restore();
+    }
 }
 
 
@@ -31478,9 +31488,13 @@ class BulletEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default
     }
     update() {
         super.update();
+        if (this.target._killed) {
+            this.kill();
+            return;
+        }
         var dir = this.target.position.clone().subtract(this.position);
         var len = dir.length();
-        if (len < this.size.x) {
+        if (len < 3) {
             this.target.damage(this.source);
             this.kill();
         } else {
@@ -31520,6 +31534,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
 /* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
 /* harmony import */ var _bullet_entity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./bullet-entity */ "./src/entities/bullet-entity.js");
+/* harmony import */ var _game__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../game */ "./src/game.js");
+
 
 
 
@@ -31530,7 +31546,7 @@ __webpack_require__.r(__webpack_exports__);
 class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"] {
     /**
      * @param {Object} o
-     * @param {BaseGame} o.game
+     * @param {Game} o.game
      * @param {number} [o.zindex=0]
      * @param {Victor} [o.position=(0, 0)]
      * @param {Victor} [o.size=(0, 0)]
@@ -31586,10 +31602,13 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
             this.onDie();
         }
     }
-    searchForNearestEnemy() {
+    searchForNearestEnemy(filterCallback = null) {
         var res = null;
         for(var e of this.game.entityManager.entities) {
             if (e.side && e.side != this.side) {
+                if (filterCallback && !filterCallback(e)) {
+                    continue;
+                }
                 if (!res) {
                     res = e;
                 } else if (this.lenSqTo(e) < this.lenSqTo(res)) {
@@ -31676,11 +31695,14 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         var ctx = this.game.canvas.context;
         ctx.save();
         this.drawBarsBackground();
+        var i = 1;
         if (this.maxHp > 0) {
-            this.drawBar(this.hp, this.maxHp, 1, 'red');
+            this.drawBar(this.hp, this.maxHp, i, 'red');
+            i++;
         }
         if (this.maxMp > 0) {
-            this.drawBar(this.mp, this.maxMp, 2, 'blue');
+            this.drawBar(this.mp, this.maxMp, i, 'blue');
+            i++;
         }
         ctx.restore();
     }
@@ -31714,6 +31736,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
 /* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
 /* harmony import */ var _game_entity__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./game-entity */ "./src/entities/game-entity.js");
+/* harmony import */ var _game__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../game */ "./src/game.js");
+
 
 
 
@@ -31732,7 +31756,7 @@ __webpack_require__.r(__webpack_exports__);
 class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
     /**
      * @param {Object} o - options
-     * @param {BaseGame} o.game
+     * @param {Game} o.game
      * @param {number} [o.zindex=0] - zindex for draw
      * @param {Victor} [o.position=(0, 0)] - center of entity
      * @param {Victor} [o.size=(0, 0)] - width and height of entity
@@ -31752,6 +31776,10 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
+    }
+    onDie() {
+        this.setPosition(this.game.heroSpawn[this.side]);
+        this.hp = this.maxHp;
     }
     /**
      * @param {Victor} velocity
@@ -31887,6 +31915,7 @@ class MinionEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_4__["default"] 
             side: 'blue',
             attackRange: 50,
             maxHp: 20,
+            maxMp: 0,
         });
         super(o);
         this.createBody();
@@ -31912,6 +31941,109 @@ class MinionEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_4__["default"] 
         } else {
             this.gotoEntity(enemy);
         }
+    }
+    draw() {
+        this.game.canvas.drawImage(this.image, this.position);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/entities/nexus-entity.js":
+/*!**************************************!*\
+  !*** ./src/entities/nexus-entity.js ***!
+  \**************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return NexusEntity; });
+/* harmony import */ var _classes_canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes/canvas */ "./src/classes/canvas.js");
+/* harmony import */ var _classes_mainloop__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../classes/mainloop */ "./src/classes/mainloop.js");
+/* harmony import */ var _classes_base_game__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../classes/base-game */ "./src/classes/base-game.js");
+/* harmony import */ var _classes_viewport__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../classes/viewport */ "./src/classes/viewport.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! keymaster */ "./node_modules/keymaster/keymaster.js");
+/* harmony import */ var keymaster__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(keymaster__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
+/* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _classes_physics_engine__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../classes/physics-engine */ "./src/classes/physics-engine.js");
+/* harmony import */ var _classes_entities_manager__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../classes/entities-manager */ "./src/classes/entities-manager.js");
+/* harmony import */ var _classes_animation__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../classes/animation */ "./src/classes/animation.js");
+/* harmony import */ var _classes_animation_manager__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../classes/animation-manager */ "./src/classes/animation-manager.js");
+/* harmony import */ var _classes_entity__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../classes/entity */ "./src/classes/entity.js");
+/* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
+/* harmony import */ var _game_entity__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./game-entity */ "./src/entities/game-entity.js");
+/* harmony import */ var _minion_entity__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./minion-entity */ "./src/entities/minion-entity.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class NexusEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
+    /**
+     * @param {Object} o - options
+     * @param {BaseGame} o.game
+     * @param {number} [o.zindex=0] - zindex for draw
+     * @param {Victor} [o.position=(0, 0)] - center of entity
+     * @param {Victor} [o.size=(0, 0)] - width and height of entity
+     * @param {sring} [o.side=blue] - width and height of entity
+     */
+    constructor(o = {}) {
+        _.defaults(o, {
+            size: new victor__WEBPACK_IMPORTED_MODULE_5___default.a(24, 24),
+            side: 'blue',
+            maxMp: 0,
+            maxHp: 2000,
+            attackRange: 0,
+        });
+        super(o);
+        this.createBody();
+        if (this.side === 'blue')
+            this.image = this.game.imageManager.getImage('BlueNexus');
+        else
+            this.image = this.game.imageManager.getImage('RedNexus');
+        this.minionSpawnPosition = this.position;
+        this.spawnInterval = 1000;
+        this.previousSpawnTime = 0;
+    }
+    createBody() {
+        this.body = this.game.physicsEngine.addBody({
+            isArcade: true,
+            isStatic: true,
+            shape: 'rectangle',
+            position: this.position,
+            size: this.size,
+        });
+    }
+    spawnMinion() {
+        this.game.entityManager.addEntity(
+            new _minion_entity__WEBPACK_IMPORTED_MODULE_13__["default"]({
+                game: this.game,
+                side: this.side,
+                position: this.minionSpawnPosition.clone(),
+            })
+        );
+    }
+    update() {
+        super.update();
+        if (this.mainloop.timestamp - this.previousSpawnTime < this.spawnInterval) {
+            return;
+        }
+        this.previousSpawnTime = this.mainloop.timestamp;
+        this.spawnMinion();
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);
@@ -31980,6 +32112,7 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         });
         super(o);
         this.createBody();
+        this.attackTarget = null;
         if (this.side === 'blue')
             this.image = this.game.imageManager.getImage('BlueTower');
         else
@@ -31998,11 +32131,19 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         super.update();
         var enemy = this.searchForNearestEnemy();
         if (this.isInRange(enemy)) {
+            this.attackTarget = enemy;
             this.attack(enemy);
+        } else {
+            this.attackTarget = null;
         }
+    }
+    drawAttackTarget() {
+        if (this.attackTarget)
+            this.game.canvas.drawLine(this.position, this.attackTarget.position, 'yellow');
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);
+        this.drawAttackTarget();
     }
 }
 
@@ -32025,9 +32166,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _entities_tower__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/tower */ "./src/entities/tower.js");
-/* harmony import */ var _entities_minion_entity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entities/minion-entity */ "./src/entities/minion-entity.js");
-/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./player */ "./src/player.js");
-/* harmony import */ var _entities_game_entity__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./entities/game-entity */ "./src/entities/game-entity.js");
+/* harmony import */ var _entities_nexus_entity__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entities/nexus-entity */ "./src/entities/nexus-entity.js");
+/* harmony import */ var _entities_minion_entity__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/minion-entity */ "./src/entities/minion-entity.js");
+/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./player */ "./src/player.js");
+/* harmony import */ var _entities_game_entity__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entities/game-entity */ "./src/entities/game-entity.js");
+
 
 
 
@@ -32058,45 +32201,88 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
             name: 'BlueMinion',
         });
         this.imageManager.addImage({
-            src: './assets/images/blue-minion-12x16.png',
+            src: './assets/images/red-minion-12x16.png',
             name: 'RedMinion',
+        });
+        this.imageManager.addImage({
+            src: './assets/images/blue-nexus-24x24.png',
+            name: 'BlueNexus',
+        });
+        this.imageManager.addImage({
+            src: './assets/images/red-nexus-24x24.png',
+            name: 'RedNexus',
         });
         this.addMap('aram', './assets/tiled/maps/aram.json');
         this.bindEvents();
         this.viewport.changeScale(1.4);
         this.addEntities();
+        /**
+         * @type {Object.<string, Victor>}
+         */
+        this.heroSpawn = {};
     }
     afterLoad() {
         this.player.entity.createAnimations();
         this.maps.aram.createStaticObjects();
         this.addTowers();
+        this.addNexues();
+        this.addHeroesSpawnPositions();
+        this.player.entity.setPosition(
+            this.heroSpawn[this.player.entity.side]
+        );
     }
     addTowers() {
-        var physicsEngine = this.physicsEngine;
         var layerName = 'towers';
         for (var layer of this.maps.aram.mapJSON.layers) {
             if (layer.type === 'objectgroup' && layer.name === layerName) {
                 for (var obj of layer.objects) {
-                    var tower = new _entities_tower__WEBPACK_IMPORTED_MODULE_3__["default"]({
+                    var o = {
                         game: this,
                         position: new victor__WEBPACK_IMPORTED_MODULE_2___default.a(obj.x, obj.y),
-                    });
-                    for(var prop of obj.properties) {
-                        tower[prop.name] = prop.value;
+                    };
+                    for (var prop of obj.properties) {
+                        o[prop.name] = prop.value;
                     }
+                    var tower = new _entities_tower__WEBPACK_IMPORTED_MODULE_3__["default"](o);
                     this.entityManager.addEntity(tower);
                 }
             }
         }
     }
+    addNexues() {
+        var layerName = 'nexuses';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    var o = {
+                        game: this,
+                        position: new victor__WEBPACK_IMPORTED_MODULE_2___default.a(obj.x, obj.y),
+                    };
+                    for (var prop of obj.properties) {
+                        o[prop.name] = prop.value;
+                    }
+                    var nexus = new _entities_nexus_entity__WEBPACK_IMPORTED_MODULE_4__["default"](o);
+                    this.entityManager.addEntity(nexus);
+                }
+            }
+        }
+    }
+    addHeroesSpawnPositions() {
+        var layerName = 'hero-spawn';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    for (var prop of obj.properties) {
+                        if (prop.name == 'side') {
+                            this.heroSpawn[prop.value] = new victor__WEBPACK_IMPORTED_MODULE_2___default.a(obj.x, obj.y);
+                        }
+                    }
+                }
+            }
+        }
+    }
     addEntities() {
-        this.player = new _player__WEBPACK_IMPORTED_MODULE_5__["default"]({ game: this });
-        this.minion = this.entityManager.addEntity(
-            new _entities_minion_entity__WEBPACK_IMPORTED_MODULE_4__["default"]({
-                game: this,
-                side: 'blue',
-            })
-        );
+        this.player = new _player__WEBPACK_IMPORTED_MODULE_6__["default"]({ game: this });
     }
     bindEvents() {
         keymaster__WEBPACK_IMPORTED_MODULE_1___default()('z', () => {
@@ -32118,20 +32304,20 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // this.maps.aram.drawStaticObjects();
         super.drawBody();
         this.drawStats();
-        this.physicsEngine.drawStaticBodyes();
-        this.physicsEngine.drawDynamicBodyes();
-        this.drawAttackRanges();
+        // this.physicsEngine.drawStaticBodyes();
+        // this.physicsEngine.drawDynamicBodyes();
+        // this.drawAttackRanges();
     }
     drawAttackRanges() {
-        for(var e of this.entityManager.entities) {
-            if (e instanceof _entities_game_entity__WEBPACK_IMPORTED_MODULE_6__["default"]) {
+        for (var e of this.entityManager.entities) {
+            if (e instanceof _entities_game_entity__WEBPACK_IMPORTED_MODULE_7__["default"]) {
                 this.canvas.drawCircle(e.position, e.attackRange, 'yellow');
             }
         }
     }
     drawStats() {
-        for(var e of this.entityManager.entities) {
-            if (e instanceof _entities_game_entity__WEBPACK_IMPORTED_MODULE_6__["default"]) {
+        for (var e of this.entityManager.entities) {
+            if (e instanceof _entities_game_entity__WEBPACK_IMPORTED_MODULE_7__["default"]) {
                 e.drawHpAndMpBars();
             }
         }
@@ -32160,20 +32346,6 @@ __webpack_require__.r(__webpack_exports__);
 async function main() {
     var game = new _game__WEBPACK_IMPORTED_MODULE_0__["default"]();
     await game.load();
-    var xy = 40;
-    game.player.entity.setPosition(
-        new victor__WEBPACK_IMPORTED_MODULE_1___default.a(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
-    xy = 70;
-    game.minion.setPosition(
-        new victor__WEBPACK_IMPORTED_MODULE_1___default.a(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
     game.viewport.setBounds({
         left: 0, right: game.maps.aram.pixelSize.x,
         top: 0, bottom: game.maps.aram.pixelSize.y,

@@ -11,9 +11,10 @@ import AnimationManager from '../classes/animation-manager';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
 import GameEntity from './game-entity';
+import MinionEntity from './minion-entity';
 
 
-export default class Tower extends GameEntity {
+export default class NexusEntity extends GameEntity {
     /**
      * @param {Object} o - options
      * @param {BaseGame} o.game
@@ -24,19 +25,21 @@ export default class Tower extends GameEntity {
      */
     constructor(o = {}) {
         _.defaults(o, {
-            size: new Victor(22, 34),
+            size: new Victor(24, 24),
             side: 'blue',
             maxMp: 0,
-            maxHp: 1000,
-            attackRange: 90,
+            maxHp: 2000,
+            attackRange: 0,
         });
         super(o);
         this.createBody();
-        this.attackTarget = null;
         if (this.side === 'blue')
-            this.image = this.game.imageManager.getImage('BlueTower');
+            this.image = this.game.imageManager.getImage('BlueNexus');
         else
-            this.image = this.game.imageManager.getImage('RedTower');
+            this.image = this.game.imageManager.getImage('RedNexus');
+        this.minionSpawnPosition = this.position;
+        this.spawnInterval = 1000;
+        this.previousSpawnTime = 0;
     }
     createBody() {
         this.body = this.game.physicsEngine.addBody({
@@ -47,22 +50,24 @@ export default class Tower extends GameEntity {
             size: this.size,
         });
     }
+    spawnMinion() {
+        this.game.entityManager.addEntity(
+            new MinionEntity({
+                game: this.game,
+                side: this.side,
+                position: this.minionSpawnPosition.clone(),
+            })
+        );
+    }
     update() {
         super.update();
-        var enemy = this.searchForNearestEnemy();
-        if (this.isInRange(enemy)) {
-            this.attackTarget = enemy;
-            this.attack(enemy);
-        } else {
-            this.attackTarget = null;
+        if (this.mainloop.timestamp - this.previousSpawnTime < this.spawnInterval) {
+            return;
         }
-    }
-    drawAttackTarget() {
-        if (this.attackTarget)
-            this.game.canvas.drawLine(this.position, this.attackTarget.position, 'yellow');
+        this.previousSpawnTime = this.mainloop.timestamp;
+        this.spawnMinion();
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);
-        this.drawAttackTarget();
     }
 }

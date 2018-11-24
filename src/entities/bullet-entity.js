@@ -28,9 +28,13 @@ export default class BulletEntity extends Entity {
     }
     update() {
         super.update();
+        if (this.target._killed) {
+            this.kill();
+            return;
+        }
         var dir = this.target.position.clone().subtract(this.position);
         var len = dir.length();
-        if (len < this.size.x) {
+        if (len < 3) {
             this.target.damage(this.source);
             this.kill();
         } else {

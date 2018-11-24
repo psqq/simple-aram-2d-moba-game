@@ -83,4 +83,14 @@ export default class Canvas {
         ctx.stroke();
         ctx.restore();
     }
+    drawLine(p1, p2, color='black') {
+        var ctx = this.context;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+        ctx.restore();
+    }
 }

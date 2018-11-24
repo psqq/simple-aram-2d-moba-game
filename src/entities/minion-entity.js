@@ -20,6 +20,7 @@ export default class MinionEntity extends GameEntity {
             side: 'blue',
             attackRange: 50,
             maxHp: 20,
+            maxMp: 0,
         });
         super(o);
         this.createBody();

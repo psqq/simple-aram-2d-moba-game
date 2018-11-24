@@ -11,12 +11,13 @@ import AnimationManager from '../classes/animation-manager';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
 import GameEntity from './game-entity';
+import Game from '../game';
 
 
 export default class HeroEnity extends GameEntity {
     /**
      * @param {Object} o - options
-     * @param {BaseGame} o.game
+     * @param {Game} o.game
      * @param {number} [o.zindex=0] - zindex for draw
      * @param {Victor} [o.position=(0, 0)] - center of entity
      * @param {Victor} [o.size=(0, 0)] - width and height of entity
@@ -36,6 +37,10 @@ export default class HeroEnity extends GameEntity {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
+    }
+    onDie() {
+        this.setPosition(this.game.heroSpawn[this.side]);
+        this.hp = this.maxHp;
     }
     /**
      * @param {Victor} velocity

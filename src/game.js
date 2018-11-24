@@ -2,6 +2,7 @@ import BaseGame from './classes/base-game';
 import key from 'keymaster';
 import Victor from 'victor';
 import TowerEntity from './entities/tower';
+import NexusEntity from './entities/nexus-entity';
 import MinionEntity from './entities/minion-entity';
 import Player from './player';
 import GameEntity from './entities/game-entity';
@@ -28,45 +29,88 @@ export default class Game extends BaseGame {
             name: 'BlueMinion',
         });
         this.imageManager.addImage({
-            src: './assets/images/blue-minion-12x16.png',
+            src: './assets/images/red-minion-12x16.png',
             name: 'RedMinion',
+        });
+        this.imageManager.addImage({
+            src: './assets/images/blue-nexus-24x24.png',
+            name: 'BlueNexus',
+        });
+        this.imageManager.addImage({
+            src: './assets/images/red-nexus-24x24.png',
+            name: 'RedNexus',
         });
         this.addMap('aram', './assets/tiled/maps/aram.json');
         this.bindEvents();
         this.viewport.changeScale(1.4);
         this.addEntities();
+        /**
+         * @type {Object.<string, Victor>}
+         */
+        this.heroSpawn = {};
     }
     afterLoad() {
         this.player.entity.createAnimations();
         this.maps.aram.createStaticObjects();
         this.addTowers();
+        this.addNexues();
+        this.addHeroesSpawnPositions();
+        this.player.entity.setPosition(
+            this.heroSpawn[this.player.entity.side]
+        );
     }
     addTowers() {
-        var physicsEngine = this.physicsEngine;
         var layerName = 'towers';
         for (var layer of this.maps.aram.mapJSON.layers) {
             if (layer.type === 'objectgroup' && layer.name === layerName) {
                 for (var obj of layer.objects) {
-                    var tower = new TowerEntity({
+                    var o = {
                         game: this,
                         position: new Victor(obj.x, obj.y),
-                    });
-                    for(var prop of obj.properties) {
-                        tower[prop.name] = prop.value;
+                    };
+                    for (var prop of obj.properties) {
+                        o[prop.name] = prop.value;
                     }
+                    var tower = new TowerEntity(o);
                     this.entityManager.addEntity(tower);
+                }
+            }
+        }
+    }
+    addNexues() {
+        var layerName = 'nexuses';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    var o = {
+                        game: this,
+                        position: new Victor(obj.x, obj.y),
+                    };
+                    for (var prop of obj.properties) {
+                        o[prop.name] = prop.value;
+                    }
+                    var nexus = new NexusEntity(o);
+                    this.entityManager.addEntity(nexus);
+                }
+            }
+        }
+    }
+    addHeroesSpawnPositions() {
+        var layerName = 'hero-spawn';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    for (var prop of obj.properties) {
+                        if (prop.name == 'side') {
+                            this.heroSpawn[prop.value] = new Victor(obj.x, obj.y);
+                        }
+                    }
                 }
             }
         }
     }
     addEntities() {
         this.player = new Player({ game: this });
-        this.minion = this.entityManager.addEntity(
-            new MinionEntity({
-                game: this,
-                side: 'blue',
-            })
-        );
     }
     bindEvents() {
         key('z', () => {
@@ -88,19 +132,19 @@ export default class Game extends BaseGame {
         // this.maps.aram.drawStaticObjects();
         super.drawBody();
         this.drawStats();
-        this.physicsEngine.drawStaticBodyes();
-        this.physicsEngine.drawDynamicBodyes();
-        this.drawAttackRanges();
+        // this.physicsEngine.drawStaticBodyes();
+        // this.physicsEngine.drawDynamicBodyes();
+        // this.drawAttackRanges();
     }
     drawAttackRanges() {
-        for(var e of this.entityManager.entities) {
+        for (var e of this.entityManager.entities) {
             if (e instanceof GameEntity) {
                 this.canvas.drawCircle(e.position, e.attackRange, 'yellow');
             }
         }
     }
     drawStats() {
-        for(var e of this.entityManager.entities) {
+        for (var e of this.entityManager.entities) {
             if (e instanceof GameEntity) {
                 e.drawHpAndMpBars();
             }

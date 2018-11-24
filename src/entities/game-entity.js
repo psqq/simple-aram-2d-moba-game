@@ -3,12 +3,13 @@ import Victor from 'victor';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
 import BulletEntity from './bullet-entity';
+import Game from '../game';
 
 
 export default class GameEntity extends Entity {
     /**
      * @param {Object} o
-     * @param {BaseGame} o.game
+     * @param {Game} o.game
      * @param {number} [o.zindex=0]
      * @param {Victor} [o.position=(0, 0)]
      * @param {Victor} [o.size=(0, 0)]
@@ -64,10 +65,13 @@ export default class GameEntity extends Entity {
             this.onDie();
         }
     }
-    searchForNearestEnemy() {
+    searchForNearestEnemy(filterCallback = null) {
         var res = null;
         for(var e of this.game.entityManager.entities) {
             if (e.side && e.side != this.side) {
+                if (filterCallback && !filterCallback(e)) {
+                    continue;
+                }
                 if (!res) {
                     res = e;
                 } else if (this.lenSqTo(e) < this.lenSqTo(res)) {
@@ -154,11 +158,14 @@ export default class GameEntity extends Entity {
         var ctx = this.game.canvas.context;
         ctx.save();
         this.drawBarsBackground();
+        var i = 1;
         if (this.maxHp > 0) {
-            this.drawBar(this.hp, this.maxHp, 1, 'red');
+            this.drawBar(this.hp, this.maxHp, i, 'red');
+            i++;
         }
         if (this.maxMp > 0) {
-            this.drawBar(this.mp, this.maxMp, 2, 'blue');
+            this.drawBar(this.mp, this.maxMp, i, 'blue');
+            i++;
         }
         ctx.restore();
     }
