@@ -1,5 +1,13 @@
 
+[Play it now!](https://psqq.github.io/simple-aram-2d-moba-game/dist/index.html)
+
 Simple all mid MOBA Game.
+
+# Controll
+
+- `wasd` - movement
+- `Mouse click` - attack
+- `b` - Shop
 
 # Assets
 
