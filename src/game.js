@@ -49,6 +49,22 @@ export default class Game extends BaseGame {
          */
         this.heroSpawn = {};
     }
+    /**
+     * @param {Victor} pos
+     */
+    findEntityUnderThisPosition(pos) {
+        var res = null;
+        for(var e of this.entityManager.entities) {
+            if (e.side) {
+                var len = e.position.clone().subtract(pos).length();
+                if (len < e.getMinSize()) {
+                    res = e;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
     afterLoad() {
         this.player.entity.createAnimations();
         this.maps.aram.createStaticObjects();
@@ -132,6 +148,7 @@ export default class Game extends BaseGame {
         // this.maps.aram.drawStaticObjects();
         super.drawBody();
         this.drawStats();
+        this.player.drawTarget();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();

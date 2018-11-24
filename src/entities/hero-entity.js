@@ -26,7 +26,7 @@ export default class HeroEnity extends GameEntity {
         _.defaults(o, {
             size: new Victor(16, 16),
             zindex: 10,
-            attackRange: 40,
+            attackRange: 85,
             movementSpeed: 2,
         });
         super(o);

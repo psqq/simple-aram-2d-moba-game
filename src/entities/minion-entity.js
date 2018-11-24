@@ -40,6 +40,9 @@ export default class MinionEntity extends GameEntity {
     update() {
         super.update();
         var enemy = this.searchForNearestEnemy();
+        if (!enemy) {
+            return;
+        }
         if (this.isInRange(enemy)) {
             this.game.physicsEngine.setVelocityForBody(this.body, new Victor(0, 0));
             this.attack(enemy);

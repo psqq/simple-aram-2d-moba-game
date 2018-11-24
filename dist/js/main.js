@@ -31765,7 +31765,7 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         _.defaults(o, {
             size: new victor__WEBPACK_IMPORTED_MODULE_5___default.a(16, 16),
             zindex: 10,
-            attackRange: 40,
+            attackRange: 85,
             movementSpeed: 2,
         });
         super(o);
@@ -31935,6 +31935,9 @@ class MinionEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_4__["default"] 
     update() {
         super.update();
         var enemy = this.searchForNearestEnemy();
+        if (!enemy) {
+            return;
+        }
         if (this.isInRange(enemy)) {
             this.game.physicsEngine.setVelocityForBody(this.body, new victor__WEBPACK_IMPORTED_MODULE_1___default.a(0, 0));
             this.attack(enemy);
@@ -32221,6 +32224,22 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
          */
         this.heroSpawn = {};
     }
+    /**
+     * @param {Victor} pos
+     */
+    findEntityUnderThisPosition(pos) {
+        var res = null;
+        for(var e of this.entityManager.entities) {
+            if (e.side) {
+                var len = e.position.clone().subtract(pos).length();
+                if (len < e.getMinSize()) {
+                    res = e;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
     afterLoad() {
         this.player.entity.createAnimations();
         this.maps.aram.createStaticObjects();
@@ -32304,6 +32323,7 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // this.maps.aram.drawStaticObjects();
         super.drawBody();
         this.drawStats();
+        this.player.drawTarget();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();
@@ -32346,6 +32366,7 @@ __webpack_require__.r(__webpack_exports__);
 async function main() {
     var game = new _game__WEBPACK_IMPORTED_MODULE_0__["default"]();
     await game.load();
+    game.player.bindEvents();
     game.viewport.setBounds({
         left: 0, right: game.maps.aram.pixelSize.x,
         top: 0, bottom: game.maps.aram.pixelSize.y,
@@ -32375,6 +32396,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! victor */ "./node_modules/victor/index.js");
 /* harmony import */ var victor__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(victor__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _entities_hero_entity__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/hero-entity */ "./src/entities/hero-entity.js");
+/* harmony import */ var _game__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./game */ "./src/game.js");
+
 
 
 
@@ -32384,7 +32407,7 @@ __webpack_require__.r(__webpack_exports__);
 class Player {
     /**
      * @param {Object} o - options
-     * @param {BaseGame} o.game
+     * @param {Game} o.game
      */
     constructor(o = {}) {
         this.game = o.game;
@@ -32400,18 +32423,52 @@ class Player {
                 side: 'blue',
             })
         );
+        this.target = null;
+    }
+    onClick(pos) {
+        var e = this.game.findEntityUnderThisPosition(pos);
+        if (!e) return;
+        if (e.side === 'red')
+            this.target = e;
+    }
+    bindEvents() {
+        window.addEventListener('mousedown', e => {
+            var w = this.game.canvas.canvas.width;
+            var h = this.game.canvas.canvas.height;
+            var nw = this.game.viewport.size.x;
+            var nh = this.game.viewport.size.y;
+            var x = nw * (e.clientX / w) + this.game.viewport.position.x;
+            var y = nh * (e.clientY / h) + this.game.viewport.position.y;
+            this.onClick(new victor__WEBPACK_IMPORTED_MODULE_2___default.a(x, y));
+        });
     }
     update() {
+        if (this.target && this.target._killed) {
+            this.target = null;
+        }
         var dir = new victor__WEBPACK_IMPORTED_MODULE_2___default.a(0, 0);
         if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('a')) dir.x -= 1;
         if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('d')) dir.x += 1;
         if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('w')) dir.y -= 1;
         if (keymaster__WEBPACK_IMPORTED_MODULE_1___default.a.isPressed('s')) dir.y += 1;
         if (dir.length() > 0) {
+            this.target = null;
             dir.norm().multiplyScalar(this.entity.movementSpeed);
+        } else if (this.target) {
+            dir = this.target.position.clone().subtract(this.entity.position);
+            if (dir.length() < this.entity.attackRange) {
+                this.entity.attack(this.target);
+                dir.x = dir.y = 0;
+            } else {
+                dir.norm().multiplyScalar(this.entity.movementSpeed);
+            }
         }
         this.entity.move(dir);
         this.game.viewport.centerAt(this.entity.position);
+    }
+    drawTarget() {
+        if (!this.target) return;
+        this.game.canvas.drawCircle(this.target.position, this.target.getMinSize(), 'red');
     }
     draw() {
         this.entity.draw();
