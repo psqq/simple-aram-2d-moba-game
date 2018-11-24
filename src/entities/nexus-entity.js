@@ -39,7 +39,7 @@ export default class NexusEntity extends GameEntity {
             this.image = this.game.imageManager.getImage('RedNexus');
         this.minionSpawnPosition = this.position;
         this.spawnInterval = 3000;
-        this.previousSpawnTime = 0;
+        this.previousSpawnTime = - this.spawnInterval;
     }
     createBody() {
         this.body = this.game.physicsEngine.addBody({

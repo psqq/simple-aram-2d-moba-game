@@ -29,7 +29,8 @@ export default class Tower extends GameEntity {
             maxMp: 0,
             maxHp: 1000,
             attackRange: 90,
-            attackDamage: 100,
+            attackDamage: 300,
+            attackSpeed: 1.2,
         });
         super(o);
         this.createBody();

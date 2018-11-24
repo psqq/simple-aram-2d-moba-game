@@ -149,6 +149,7 @@ export default class Game extends BaseGame {
         super.drawBody();
         this.drawStats();
         this.player.drawTarget();
+        this.player.drawCs();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();

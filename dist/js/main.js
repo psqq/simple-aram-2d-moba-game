@@ -30340,6 +30340,16 @@ class BaseGame {
         }
         this.afterLoad();
     }
+    beginHud() {
+        var ctx = this.canvas.context;
+        ctx.save();
+        ctx.translate(this.viewport.position.x, this.viewport.position.y);
+        ctx.scale(1, 1);
+    }
+    endHud() {
+        var ctx = this.canvas.context;
+        ctx.restore();
+    }
     afterLoad() {}
     drawMap(mapName) {
         this.maps[mapName].drawFromCache();
@@ -31495,7 +31505,7 @@ class BulletEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default
         var dir = this.target.position.clone().subtract(this.position);
         var len = dir.length();
         if (len < 3) {
-            this.target.damage(this.source);
+            this.target.takeDamage(this.source);
             this.kill();
         } else {
             dir.norm().multiplyScalar(this.speed * this.mainloop.dt);
@@ -31584,7 +31594,7 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         this.attackDamage = o.attackDamage;
         this.attackSpeed = o.attackSpeed;
         this.attackInterval = 1 / this.attackSpeed * 1000;
-        this.timeOfPreviousAttack = 0;
+        this.timeOfPreviousAttack = -this.attackInterval;
 
         this.barHeight = 2;
         this.bottomPadding = 2;
@@ -31592,12 +31602,14 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
     onDie() {
         this.kill();
     }
+    onKillEnemy(e) {}
     /**
      * @param {GameEntity} e
      */
-    damage(e) {
+    takeDamage(e) {
         this.hp -= e.attackDamage;
         if (this.hp <= 0) {
+            e.onKillEnemy(this);
             this.hp = 0;
             this.onDie();
         }
@@ -31779,10 +31791,14 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
+        this.cs = 0;
     }
     onDie() {
         this.setPosition(this.game.heroSpawn[this.side]);
         this.hp = this.maxHp;
+    }
+    onKillEnemy(e) {
+        this.cs += 1;
     }
     /**
      * @param {Victor} velocity
@@ -32024,7 +32040,7 @@ class NexusEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] 
             this.image = this.game.imageManager.getImage('RedNexus');
         this.minionSpawnPosition = this.position;
         this.spawnInterval = 3000;
-        this.previousSpawnTime = 0;
+        this.previousSpawnTime = - this.spawnInterval;
     }
     createBody() {
         this.body = this.game.physicsEngine.addBody({
@@ -32116,7 +32132,8 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
             maxMp: 0,
             maxHp: 1000,
             attackRange: 90,
-            attackDamage: 100,
+            attackDamage: 300,
+            attackSpeed: 1.2,
         });
         super(o);
         this.createBody();
@@ -32332,6 +32349,7 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super.drawBody();
         this.drawStats();
         this.player.drawTarget();
+        this.player.drawCs();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();
@@ -32477,6 +32495,16 @@ class Player {
     drawTarget() {
         if (!this.target) return;
         this.game.canvas.drawCircle(this.target.position, this.target.getMinSize(), 'red');
+    }
+    drawCs() {
+        var ctx = this.game.canvas.context;
+        this.game.beginHud();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        var msg = 'CS: ' + this.entity.cs;
+        msg += '  GOLD: ' + this.entity.cs * 20;
+        ctx.fillText(msg, 0, 0);
+        this.game.endHud();
     }
     draw() {
         this.entity.draw();

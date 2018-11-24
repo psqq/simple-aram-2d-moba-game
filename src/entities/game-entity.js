@@ -47,7 +47,7 @@ export default class GameEntity extends Entity {
         this.attackDamage = o.attackDamage;
         this.attackSpeed = o.attackSpeed;
         this.attackInterval = 1 / this.attackSpeed * 1000;
-        this.timeOfPreviousAttack = 0;
+        this.timeOfPreviousAttack = -this.attackInterval;
 
         this.barHeight = 2;
         this.bottomPadding = 2;
@@ -55,12 +55,14 @@ export default class GameEntity extends Entity {
     onDie() {
         this.kill();
     }
+    onKillEnemy(e) {}
     /**
      * @param {GameEntity} e
      */
-    damage(e) {
+    takeDamage(e) {
         this.hp -= e.attackDamage;
         if (this.hp <= 0) {
+            e.onKillEnemy(this);
             this.hp = 0;
             this.onDie();
         }

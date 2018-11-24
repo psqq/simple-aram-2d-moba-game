@@ -63,6 +63,16 @@ export default class BaseGame {
         }
         this.afterLoad();
     }
+    beginHud() {
+        var ctx = this.canvas.context;
+        ctx.save();
+        ctx.translate(this.viewport.position.x, this.viewport.position.y);
+        ctx.scale(1, 1);
+    }
+    endHud() {
+        var ctx = this.canvas.context;
+        ctx.restore();
+    }
     afterLoad() {}
     drawMap(mapName) {
         this.maps[mapName].drawFromCache();

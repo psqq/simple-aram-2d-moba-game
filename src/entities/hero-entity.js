@@ -40,10 +40,14 @@ export default class HeroEnity extends GameEntity {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
+        this.cs = 0;
     }
     onDie() {
         this.setPosition(this.game.heroSpawn[this.side]);
         this.hp = this.maxHp;
+    }
+    onKillEnemy(e) {
+        this.cs += 1;
     }
     /**
      * @param {Victor} velocity
