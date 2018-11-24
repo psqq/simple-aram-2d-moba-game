@@ -28,6 +28,9 @@ export default class HeroEnity extends GameEntity {
             zindex: 10,
             attackRange: 85,
             movementSpeed: 2,
+            attackSpeed: 1.5,
+            attackDamage: 50,
+            maxHp: 500,
         });
         super(o);
         this.createBody();

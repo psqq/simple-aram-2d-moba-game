@@ -31767,6 +31767,9 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
             zindex: 10,
             attackRange: 85,
             movementSpeed: 2,
+            attackSpeed: 1.5,
+            attackDamage: 50,
+            maxHp: 500,
         });
         super(o);
         this.createBody();
@@ -31914,8 +31917,9 @@ class MinionEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_4__["default"] 
             size: new victor__WEBPACK_IMPORTED_MODULE_1___default.a(12, 16),
             side: 'blue',
             attackRange: 50,
-            maxHp: 20,
+            maxHp: 300,
             maxMp: 0,
+            attackDamge: 30,
         });
         super(o);
         this.createBody();
@@ -32019,7 +32023,7 @@ class NexusEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] 
         else
             this.image = this.game.imageManager.getImage('RedNexus');
         this.minionSpawnPosition = this.position;
-        this.spawnInterval = 1000;
+        this.spawnInterval = 3000;
         this.previousSpawnTime = 0;
     }
     createBody() {
@@ -32112,6 +32116,7 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
             maxMp: 0,
             maxHp: 1000,
             attackRange: 90,
+            attackDamage: 100,
         });
         super(o);
         this.createBody();
@@ -32133,6 +32138,9 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
     update() {
         super.update();
         var enemy = this.searchForNearestEnemy();
+        if (!enemy) {
+            return;
+        }
         if (this.isInRange(enemy)) {
             this.attackTarget = enemy;
             this.attack(enemy);

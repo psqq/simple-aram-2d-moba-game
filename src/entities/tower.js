@@ -29,6 +29,7 @@ export default class Tower extends GameEntity {
             maxMp: 0,
             maxHp: 1000,
             attackRange: 90,
+            attackDamage: 100,
         });
         super(o);
         this.createBody();
@@ -50,6 +51,9 @@ export default class Tower extends GameEntity {
     update() {
         super.update();
         var enemy = this.searchForNearestEnemy();
+        if (!enemy) {
+            return;
+        }
         if (this.isInRange(enemy)) {
             this.attackTarget = enemy;
             this.attack(enemy);
