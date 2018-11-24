@@ -10,9 +10,10 @@ import Animation from '../classes/animation';
 import AnimationManager from '../classes/animation-manager';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
+import GameEntity from './game-entity';
 
 
-export default class HeroEnity extends Entity {
+export default class HeroEnity extends GameEntity {
     /**
      * @param {Object} o - options
      * @param {BaseGame} o.game
@@ -22,11 +23,12 @@ export default class HeroEnity extends Entity {
      */
     constructor(o = {}) {
         _.defaults(o, {
-            mainloop: o.game.mainloop,
             size: new Victor(16, 16),
+            zindex: 10,
+            attackRange: 40,
+            movementSpeed: 2,
         });
         super(o);
-        this.game = o.game;
         this.createBody();
         /**
          * @type {Object.<string, Animation]>}
@@ -34,10 +36,6 @@ export default class HeroEnity extends Entity {
         this.animations = {};
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
-        this.stats = new Stats({
-            game: this.game,
-            entity: this,
-        });
     }
     /**
      * @param {Victor} velocity
@@ -129,6 +127,5 @@ export default class HeroEnity extends Entity {
     }
     draw() {
         this.animations[this.currentAnimation].draw(this.position);
-        this.stats.draw();
     }
 }

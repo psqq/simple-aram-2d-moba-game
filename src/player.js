@@ -22,7 +22,7 @@ export default class Player {
                 game: this.game,
             })
         );
-        this.speed = 2;
+        this.entity.side = 'blue';
     }
     update() {
         var dir = new Victor(0, 0);
@@ -31,7 +31,7 @@ export default class Player {
         if (key.isPressed('w')) dir.y -= 1;
         if (key.isPressed('s')) dir.y += 1;
         if (dir.length() > 0) {
-            dir.norm().multiplyScalar(this.speed);
+            dir.norm().multiplyScalar(this.entity.movementSpeed);
         }
         this.entity.move(dir);
         this.game.viewport.centerAt(this.entity.position);

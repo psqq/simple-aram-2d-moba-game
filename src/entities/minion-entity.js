@@ -1,19 +1,11 @@
-import Canvas from '../classes/canvas';
-import Mainloop from '../classes/mainloop';
 import BaseGame from '../classes/base-game';
-import Viewport from '../classes/viewport';
-import key from 'keymaster';
 import Victor from 'victor';
-import PhysicsEngine from '../classes/physics-engine';
-import EntityManager from '../classes/entities-manager';
-import Animation from '../classes/animation';
-import AnimationManager from '../classes/animation-manager';
 import Entity from '../classes/entity';
 import Stats from '../classes/stats';
 import GameEntity from './game-entity';
 
 
-export default class Tower extends GameEntity {
+export default class MinionEntity extends GameEntity {
     /**
      * @param {Object} o - options
      * @param {BaseGame} o.game
@@ -24,22 +16,20 @@ export default class Tower extends GameEntity {
      */
     constructor(o = {}) {
         _.defaults(o, {
-            size: new Victor(22, 34),
+            size: new Victor(12, 16),
             side: 'blue',
-            maxMp: 0,
-            attackRange: 90,
+            attackRange: 50,
         });
         super(o);
         this.createBody();
         if (this.side === 'blue')
-            this.image = this.game.imageManager.getImage('BlueTower');
+            this.image = this.game.imageManager.getImage('BlueMinion');
         else
-            this.image = this.game.imageManager.getImage('RedTower');
+            this.image = this.game.imageManager.getImage('RedMinion');
     }
     createBody() {
         this.body = this.game.physicsEngine.addBody({
             isArcade: true,
-            isStatic: true,
             shape: 'rectangle',
             position: this.position,
             size: this.size,
@@ -47,6 +37,13 @@ export default class Tower extends GameEntity {
     }
     update() {
         super.update();
+        var enemy = this.searchForNearestEnemy();
+        if (this.isInRange(enemy)) {
+            this.game.physicsEngine.setVelocityForBody(this.body, new Victor(0, 0));
+            this.attack(enemy);
+        } else {
+            this.gotoEntity(enemy);
+        }
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);

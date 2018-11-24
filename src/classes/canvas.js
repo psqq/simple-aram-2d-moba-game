@@ -74,4 +74,13 @@ export default class Canvas {
             img.size.x, img.size.y,
         );
     }
+    drawCircle(pos, r, color='black') {
+        var ctx = this.context;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, r, 0, 2*Math.PI);
+        ctx.stroke();
+        ctx.restore();
+    }
 }

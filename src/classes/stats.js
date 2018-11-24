@@ -7,19 +7,28 @@ export default class Stats {
      * @param {Object} o - options
      * @param {BaseGame} o.game
      * @param {Entity} o.entity
-     * @param {number} [o.maxMp]
+     * @param {number} [o.maxMp=100]
+     * @param {number} [o.maxHp=100]
+     * @param {number} [o.range=50]
+     * @param {number} [o.speed=1.5]
      */
     constructor(o = {}) {
         _.defaults(o, {
             maxMp: 100,
             maxHp: 100,
+            range: 50,
+            speed: 1.5,
         });
         this.game = o.game;
         this.entity = o.entity;
+
         this.hp = o.maxHp * 0.8;
         this.maxHp = o.maxHp;
         this.mp = o.maxMp / 3;
         this.maxMp = o.maxMp;
+        this.range = o.range;
+        this.speed = 1.5;
+
         this.barHeight = 2;
         this.bottomPadding = 2;
     }
