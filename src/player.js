@@ -20,9 +20,9 @@ export default class Player {
             new HeroEntity({
                 position: new Victor(225, 230),
                 game: this.game,
+                side: 'blue',
             })
         );
-        this.entity.side = 'blue';
     }
     update() {
         var dir = new Victor(0, 0);

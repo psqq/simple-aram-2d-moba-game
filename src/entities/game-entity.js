@@ -51,21 +51,31 @@ export default class GameEntity extends Entity {
         this.barHeight = 2;
         this.bottomPadding = 2;
     }
+    onDie() {
+        this.kill();
+    }
     /**
      * @param {GameEntity} e
      */
     damage(e) {
         this.hp -= e.attackDamage;
-        if (this.hp < 0) {
+        if (this.hp <= 0) {
             this.hp = 0;
+            this.onDie();
         }
     }
     searchForNearestEnemy() {
+        var res = null;
         for(var e of this.game.entityManager.entities) {
             if (e.side && e.side != this.side) {
-                return e;
+                if (!res) {
+                    res = e;
+                } else if (this.lenSqTo(e) < this.lenSqTo(res)) {
+                    res = e;
+                }
             }
         }
+        return res;
     }
     /**
      * @param {GameEntity} e

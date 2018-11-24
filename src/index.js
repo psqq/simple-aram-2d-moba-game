@@ -12,20 +12,6 @@ async function main() {
             game.maps.aram.pixelSize.y - xy,
         )
     );
-    xy = 250;
-    game.tower.setPosition(
-        new Victor(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
-    xy = 200;
-    game.tower2.setPosition(
-        new Victor(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
     xy = 70;
     game.minion.setPosition(
         new Victor(

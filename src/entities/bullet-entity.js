@@ -18,7 +18,7 @@ export default class BulletEntity extends Entity {
             mainloop: o.game.mainloop,
             size: new Victor(1, 1),
             position: o.source.position.clone(),
-            speed: 0.06,
+            speed: 0.15,
         });
         super(o);
         this.source = o.source;
@@ -45,7 +45,7 @@ export default class BulletEntity extends Entity {
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, r, 0, 2 * Math.PI);
         ctx.closePath();
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = this.source.side;
         ctx.fill();
         ctx.restore();
     }

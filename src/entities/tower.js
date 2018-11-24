@@ -27,6 +27,7 @@ export default class Tower extends GameEntity {
             size: new Victor(22, 34),
             side: 'blue',
             maxMp: 0,
+            maxHp: 1000,
             attackRange: 90,
         });
         super(o);
@@ -47,6 +48,10 @@ export default class Tower extends GameEntity {
     }
     update() {
         super.update();
+        var enemy = this.searchForNearestEnemy();
+        if (this.isInRange(enemy)) {
+            this.attack(enemy);
+        }
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);

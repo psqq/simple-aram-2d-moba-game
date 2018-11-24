@@ -1,7 +1,8 @@
 import Victor from 'victor';
 import _ from 'lodash';
-import { Body, Vector } from './physics-engine';
+import { Body, Vector, Composite } from './physics-engine';
 import Mainloop from './mainloop';
+import BaseGame from './base-game';
 
 /** Class representing an game entity. */
 export default class Entity {
@@ -10,7 +11,7 @@ export default class Entity {
      * @param {number} [o.zindex=0] - zindex for draw
      * @param {Victor} [o.position=(0, 0)] - center of entity
      * @param {Victor} [o.size=(0, 0)] - width and height of entity
-     * @param {Mainloop} o.mainloop
+     * @param {BaseGame} o.game
      */
     constructor(o = {}) {
         _.defaults(o, {
@@ -18,15 +19,22 @@ export default class Entity {
             position: new Victor(0, 0),
             size: new Victor(0, 0),
         });
-        this.mainloop = o.mainloop;
         this.position = o.position.clone();
         this.size = o.size.clone();
         this.zindex = o.zindex;
         this._killed = false;
+        this.game = o.game;
+        this.mainloop = this.game.mainloop;
         /**
          * @type {Body}
          */
         this.body = null;
+    }
+    /**
+     * @param {Entity} e
+     */
+    lenSqTo(e) {
+        return e.position.clone().subtract(this.position).lengthSq();
     }
     getMinSize() {
         return Math.min(this.size.x, this.size.y);
@@ -44,6 +52,10 @@ export default class Entity {
     }
     kill() {
         this._killed = true;
+        if (this.body) {
+            Composite.remove(this.game.physicsEngine.world, this.body);
+            this.body = null;
+        }
     }
     /**
      * @param {Body} body

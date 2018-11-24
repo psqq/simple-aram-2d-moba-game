@@ -36,20 +36,31 @@ export default class Game extends BaseGame {
         this.viewport.changeScale(1.4);
         this.addEntities();
     }
+    afterLoad() {
+        this.player.entity.createAnimations();
+        this.maps.aram.createStaticObjects();
+        this.addTowers();
+    }
+    addTowers() {
+        var physicsEngine = this.physicsEngine;
+        var layerName = 'towers';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    var tower = new TowerEntity({
+                        game: this,
+                        position: new Victor(obj.x, obj.y),
+                    });
+                    for(var prop of obj.properties) {
+                        tower[prop.name] = prop.value;
+                    }
+                    this.entityManager.addEntity(tower);
+                }
+            }
+        }
+    }
     addEntities() {
         this.player = new Player({ game: this });
-        this.tower = this.entityManager.addEntity(
-            new TowerEntity({
-                game: this,
-                side: 'blue',
-            })
-        );
-        this.tower2 = this.entityManager.addEntity(
-            new TowerEntity({
-                game: this,
-                side: 'red',
-            })
-        );
         this.minion = this.entityManager.addEntity(
             new MinionEntity({
                 game: this,
@@ -68,10 +79,6 @@ export default class Game extends BaseGame {
             this.pos.x = this.pos.y = 0;
         });
     }
-    afterLoad() {
-        this.player.entity.createAnimations();
-        this.maps.aram.createStaticObjects();
-    }
     update() {
         this.player.update();
         super.update();
@@ -79,11 +86,11 @@ export default class Game extends BaseGame {
     drawBody() {
         this.drawMap('aram');
         // this.maps.aram.drawStaticObjects();
+        super.drawBody();
+        this.drawStats();
         this.physicsEngine.drawStaticBodyes();
         this.physicsEngine.drawDynamicBodyes();
-        super.drawBody();
         this.drawAttackRanges();
-        this.drawStats();
     }
     drawAttackRanges() {
         for(var e of this.entityManager.entities) {

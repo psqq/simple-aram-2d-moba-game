@@ -30574,6 +30574,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _physics_engine__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./physics-engine */ "./src/classes/physics-engine.js");
 /* harmony import */ var _mainloop__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mainloop */ "./src/classes/mainloop.js");
+/* harmony import */ var _base_game__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./base-game */ "./src/classes/base-game.js");
+
 
 
 
@@ -30586,7 +30588,7 @@ class Entity {
      * @param {number} [o.zindex=0] - zindex for draw
      * @param {Victor} [o.position=(0, 0)] - center of entity
      * @param {Victor} [o.size=(0, 0)] - width and height of entity
-     * @param {Mainloop} o.mainloop
+     * @param {BaseGame} o.game
      */
     constructor(o = {}) {
         lodash__WEBPACK_IMPORTED_MODULE_1___default.a.defaults(o, {
@@ -30594,15 +30596,22 @@ class Entity {
             position: new victor__WEBPACK_IMPORTED_MODULE_0___default.a(0, 0),
             size: new victor__WEBPACK_IMPORTED_MODULE_0___default.a(0, 0),
         });
-        this.mainloop = o.mainloop;
         this.position = o.position.clone();
         this.size = o.size.clone();
         this.zindex = o.zindex;
         this._killed = false;
+        this.game = o.game;
+        this.mainloop = this.game.mainloop;
         /**
          * @type {Body}
          */
         this.body = null;
+    }
+    /**
+     * @param {Entity} e
+     */
+    lenSqTo(e) {
+        return e.position.clone().subtract(this.position).lengthSq();
     }
     getMinSize() {
         return Math.min(this.size.x, this.size.y);
@@ -30620,6 +30629,10 @@ class Entity {
     }
     kill() {
         this._killed = true;
+        if (this.body) {
+            _physics_engine__WEBPACK_IMPORTED_MODULE_2__["Composite"].remove(this.game.physicsEngine.world, this.body);
+            this.body = null;
+        }
     }
     /**
      * @param {Body} body
@@ -31455,7 +31468,7 @@ class BulletEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default
             mainloop: o.game.mainloop,
             size: new victor__WEBPACK_IMPORTED_MODULE_1___default.a(1, 1),
             position: o.source.position.clone(),
-            speed: 0.06,
+            speed: 0.15,
         });
         super(o);
         this.source = o.source;
@@ -31482,7 +31495,7 @@ class BulletEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, r, 0, 2 * Math.PI);
         ctx.closePath();
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = this.source.side;
         ctx.fill();
         ctx.restore();
     }
@@ -31560,21 +31573,31 @@ class GameEntity extends _classes_entity__WEBPACK_IMPORTED_MODULE_2__["default"]
         this.barHeight = 2;
         this.bottomPadding = 2;
     }
+    onDie() {
+        this.kill();
+    }
     /**
      * @param {GameEntity} e
      */
     damage(e) {
         this.hp -= e.attackDamage;
-        if (this.hp < 0) {
+        if (this.hp <= 0) {
             this.hp = 0;
+            this.onDie();
         }
     }
     searchForNearestEnemy() {
+        var res = null;
         for(var e of this.game.entityManager.entities) {
             if (e.side && e.side != this.side) {
-                return e;
+                if (!res) {
+                    res = e;
+                } else if (this.lenSqTo(e) < this.lenSqTo(res)) {
+                    res = e;
+                }
             }
         }
+        return res;
     }
     /**
      * @param {GameEntity} e
@@ -31863,6 +31886,7 @@ class MinionEntity extends _game_entity__WEBPACK_IMPORTED_MODULE_4__["default"] 
             size: new victor__WEBPACK_IMPORTED_MODULE_1___default.a(12, 16),
             side: 'blue',
             attackRange: 50,
+            maxHp: 20,
         });
         super(o);
         this.createBody();
@@ -31951,6 +31975,7 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
             size: new victor__WEBPACK_IMPORTED_MODULE_5___default.a(22, 34),
             side: 'blue',
             maxMp: 0,
+            maxHp: 1000,
             attackRange: 90,
         });
         super(o);
@@ -31971,6 +31996,10 @@ class Tower extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
     }
     update() {
         super.update();
+        var enemy = this.searchForNearestEnemy();
+        if (this.isInRange(enemy)) {
+            this.attack(enemy);
+        }
     }
     draw() {
         this.game.canvas.drawImage(this.image, this.position);
@@ -32037,20 +32066,31 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.viewport.changeScale(1.4);
         this.addEntities();
     }
+    afterLoad() {
+        this.player.entity.createAnimations();
+        this.maps.aram.createStaticObjects();
+        this.addTowers();
+    }
+    addTowers() {
+        var physicsEngine = this.physicsEngine;
+        var layerName = 'towers';
+        for (var layer of this.maps.aram.mapJSON.layers) {
+            if (layer.type === 'objectgroup' && layer.name === layerName) {
+                for (var obj of layer.objects) {
+                    var tower = new _entities_tower__WEBPACK_IMPORTED_MODULE_3__["default"]({
+                        game: this,
+                        position: new victor__WEBPACK_IMPORTED_MODULE_2___default.a(obj.x, obj.y),
+                    });
+                    for(var prop of obj.properties) {
+                        tower[prop.name] = prop.value;
+                    }
+                    this.entityManager.addEntity(tower);
+                }
+            }
+        }
+    }
     addEntities() {
         this.player = new _player__WEBPACK_IMPORTED_MODULE_5__["default"]({ game: this });
-        this.tower = this.entityManager.addEntity(
-            new _entities_tower__WEBPACK_IMPORTED_MODULE_3__["default"]({
-                game: this,
-                side: 'blue',
-            })
-        );
-        this.tower2 = this.entityManager.addEntity(
-            new _entities_tower__WEBPACK_IMPORTED_MODULE_3__["default"]({
-                game: this,
-                side: 'red',
-            })
-        );
         this.minion = this.entityManager.addEntity(
             new _entities_minion_entity__WEBPACK_IMPORTED_MODULE_4__["default"]({
                 game: this,
@@ -32069,10 +32109,6 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this.pos.x = this.pos.y = 0;
         });
     }
-    afterLoad() {
-        this.player.entity.createAnimations();
-        this.maps.aram.createStaticObjects();
-    }
     update() {
         this.player.update();
         super.update();
@@ -32080,11 +32116,11 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
     drawBody() {
         this.drawMap('aram');
         // this.maps.aram.drawStaticObjects();
+        super.drawBody();
+        this.drawStats();
         this.physicsEngine.drawStaticBodyes();
         this.physicsEngine.drawDynamicBodyes();
-        super.drawBody();
         this.drawAttackRanges();
-        this.drawStats();
     }
     drawAttackRanges() {
         for(var e of this.entityManager.entities) {
@@ -32126,20 +32162,6 @@ async function main() {
     await game.load();
     var xy = 40;
     game.player.entity.setPosition(
-        new victor__WEBPACK_IMPORTED_MODULE_1___default.a(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
-    xy = 250;
-    game.tower.setPosition(
-        new victor__WEBPACK_IMPORTED_MODULE_1___default.a(
-            xy,
-            game.maps.aram.pixelSize.y - xy,
-        )
-    );
-    xy = 200;
-    game.tower2.setPosition(
         new victor__WEBPACK_IMPORTED_MODULE_1___default.a(
             xy,
             game.maps.aram.pixelSize.y - xy,
@@ -32203,9 +32225,9 @@ class Player {
             new _entities_hero_entity__WEBPACK_IMPORTED_MODULE_3__["default"]({
                 position: new victor__WEBPACK_IMPORTED_MODULE_2___default.a(225, 230),
                 game: this.game,
+                side: 'blue',
             })
         );
-        this.entity.side = 'blue';
     }
     update() {
         var dir = new victor__WEBPACK_IMPORTED_MODULE_2___default.a(0, 0);
