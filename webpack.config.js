@@ -10,6 +10,9 @@ module.exports = (env, options) => {
             path: path.resolve(__dirname, 'dist', 'js'),
             filename: 'main.js'
         },
+        // module: {
+        //     noParse: /jquery/,
+        // },
         plugins: [
             new webpack.ProvidePlugin({
                 '$': 'jquery',

@@ -6,7 +6,7 @@ import NexusEntity from './entities/nexus-entity';
 import MinionEntity from './entities/minion-entity';
 import Player from './player';
 import GameEntity from './entities/game-entity';
-import * as ui from './ui';
+import UI from './ui';
 
 
 export default class Game extends BaseGame {
@@ -49,6 +49,8 @@ export default class Game extends BaseGame {
          * @type {Object.<string, Victor>}
          */
         this.heroSpawn = {};
+        this.ui = new UI({ game: this });
+        this.ui.bindEvents();
     }
     /**
      * @param {Victor} pos
@@ -75,6 +77,7 @@ export default class Game extends BaseGame {
         this.player.entity.setPosition(
             this.heroSpawn[this.player.entity.side]
         );
+        this.ui.update();
     }
     addTowers() {
         var layerName = 'towers';

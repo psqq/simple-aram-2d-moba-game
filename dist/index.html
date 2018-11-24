@@ -9,16 +9,38 @@
             left: 10px;
             top: 10px;
             z-index: 999;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
-            font-size: 20pt;
+            font-size: 16pt;
+            padding: 10px;
+            font-family: monospace;
+        }
+        .shop {
+            display: none;
+            position: fixed;
+            left: 200px;
+            top: 50px;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 16pt;
+            padding: 10px;
+            font-family: monospace;
+            border: 1px solid black;
         }
     </style>
 </head>
 <body>
     <div class="cs-and-gold">
-        CS: <span class="cs">0</span>
-        GOLD: <span class="gold">0</span>
+        CS: <span class="cs">0</span><br>
+        GOLD: <span class="gold">0</span><br>
+        DMG: <span class="dmg">0</span>
+    </div>
+    <div class="shop">
+        <h1>Shop</h1>
+        <a href="#" class="buy-dmg">
+            Buy 100 dmg for 50 gold
+        </a>
     </div>
     <script src="./js/main.js"></script>
 </body>

@@ -33,6 +33,7 @@ export default class Player {
             this.target = e;
     }
     bindEvents() {
+        key('b', () => this.game.ui.toggleShop());
         window.addEventListener('mousedown', e => {
             var w = this.game.canvas.canvas.width;
             var h = this.game.canvas.canvas.height;

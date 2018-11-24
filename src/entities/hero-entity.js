@@ -51,8 +51,7 @@ export default class HeroEnity extends GameEntity {
     onKillEnemy(e) {
         this.cs += 1;
         this.gold += 20;
-        ui.showCs(this.cs);
-        ui.showGold(this.gold);
+        this.game.ui.update();
     }
     /**
      * @param {Victor} velocity
