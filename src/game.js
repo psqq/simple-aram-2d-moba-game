@@ -6,6 +6,7 @@ import NexusEntity from './entities/nexus-entity';
 import MinionEntity from './entities/minion-entity';
 import Player from './player';
 import GameEntity from './entities/game-entity';
+import * as ui from './ui';
 
 
 export default class Game extends BaseGame {
@@ -149,7 +150,6 @@ export default class Game extends BaseGame {
         super.drawBody();
         this.drawStats();
         this.player.drawTarget();
-        this.player.drawCs();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();

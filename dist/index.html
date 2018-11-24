@@ -3,8 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>HTML 5 Gamedev Sandbox</title>
+    <style>
+        .cs-and-gold {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 20pt;
+        }
+    </style>
 </head>
 <body>
+    <div class="cs-and-gold">
+        CS: <span class="cs">0</span>
+        GOLD: <span class="gold">0</span>
+    </div>
     <script src="./js/main.js"></script>
 </body>
 </html>

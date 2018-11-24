@@ -31749,6 +31749,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _classes_stats__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../classes/stats */ "./src/classes/stats.js");
 /* harmony import */ var _game_entity__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./game-entity */ "./src/entities/game-entity.js");
 /* harmony import */ var _game__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../game */ "./src/game.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../ui */ "./src/ui.js");
+
 
 
 
@@ -31792,6 +31794,7 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
         this.cs = 0;
+        this.gold = 0;
     }
     onDie() {
         this.setPosition(this.game.heroSpawn[this.side]);
@@ -31799,6 +31802,9 @@ class HeroEnity extends _game_entity__WEBPACK_IMPORTED_MODULE_12__["default"] {
     }
     onKillEnemy(e) {
         this.cs += 1;
+        this.gold += 20;
+        _ui__WEBPACK_IMPORTED_MODULE_14__["showCs"](this.cs);
+        _ui__WEBPACK_IMPORTED_MODULE_14__["showGold"](this.gold);
     }
     /**
      * @param {Victor} velocity
@@ -32198,6 +32204,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_minion_entity__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/minion-entity */ "./src/entities/minion-entity.js");
 /* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./player */ "./src/player.js");
 /* harmony import */ var _entities_game_entity__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entities/game-entity */ "./src/entities/game-entity.js");
+/* harmony import */ var _ui__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui */ "./src/ui.js");
+
 
 
 
@@ -32349,7 +32357,6 @@ class Game extends _classes_base_game__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super.drawBody();
         this.drawStats();
         this.player.drawTarget();
-        this.player.drawCs();
         // this.physicsEngine.drawStaticBodyes();
         // this.physicsEngine.drawDynamicBodyes();
         // this.drawAttackRanges();
@@ -32496,19 +32503,34 @@ class Player {
         if (!this.target) return;
         this.game.canvas.drawCircle(this.target.position, this.target.getMinSize(), 'red');
     }
-    drawCs() {
-        var ctx = this.game.canvas.context;
-        this.game.beginHud();
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        var msg = 'CS: ' + this.entity.cs;
-        msg += '  GOLD: ' + this.entity.cs * 20;
-        ctx.fillText(msg, 0, 0);
-        this.game.endHud();
-    }
     draw() {
         this.entity.draw();
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/ui.js":
+/*!*******************!*\
+  !*** ./src/ui.js ***!
+  \*******************/
+/*! exports provided: showCs, showGold */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showCs", function() { return showCs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showGold", function() { return showGold; });
+var cs = document.querySelector('.cs');
+var gold = document.querySelector('.gold');
+
+function showCs(value) {
+    cs.innerHTML = value;
+}
+
+function showGold(value) {
+    gold.innerHTML = value;
 }
 
 

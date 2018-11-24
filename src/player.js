@@ -71,16 +71,6 @@ export default class Player {
         if (!this.target) return;
         this.game.canvas.drawCircle(this.target.position, this.target.getMinSize(), 'red');
     }
-    drawCs() {
-        var ctx = this.game.canvas.context;
-        this.game.beginHud();
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        var msg = 'CS: ' + this.entity.cs;
-        msg += '  GOLD: ' + this.entity.cs * 20;
-        ctx.fillText(msg, 0, 0);
-        this.game.endHud();
-    }
     draw() {
         this.entity.draw();
     }

@@ -12,6 +12,7 @@ import Entity from '../classes/entity';
 import Stats from '../classes/stats';
 import GameEntity from './game-entity';
 import Game from '../game';
+import * as ui from '../ui';
 
 
 export default class HeroEnity extends GameEntity {
@@ -41,6 +42,7 @@ export default class HeroEnity extends GameEntity {
         this.currentAnimation = 'hero_walk_up';
         this.isMoving = false;
         this.cs = 0;
+        this.gold = 0;
     }
     onDie() {
         this.setPosition(this.game.heroSpawn[this.side]);
@@ -48,6 +50,9 @@ export default class HeroEnity extends GameEntity {
     }
     onKillEnemy(e) {
         this.cs += 1;
+        this.gold += 20;
+        ui.showCs(this.cs);
+        ui.showGold(this.gold);
     }
     /**
      * @param {Victor} velocity

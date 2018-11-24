@@ -1,5 +1,6 @@
 const path = require('path');
 const del = require('del');
+const webpack = require('webpack');
 
 module.exports = (env, options) => {
 
@@ -8,7 +9,12 @@ module.exports = (env, options) => {
         output: {
             path: path.resolve(__dirname, 'dist', 'js'),
             filename: 'main.js'
-        }
+        },
+        plugins: [
+            new webpack.ProvidePlugin({
+                '$': 'jquery',
+            })
+        ],
     };
 
     if (options.mode === 'development') {
